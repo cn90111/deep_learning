@@ -6,23 +6,18 @@ import initializer.AbstractInitializer;
 public abstract class Layer
 {
 	private Neurons[] neurons;
-	private double[] bias;
-	private AbstractInitializer biasInitializer;
 	private AbstractActivation activation;
-
 	private int linkSize;
 	private double[] input;
 	private double[] output;
 
-	public Layer(int neuronSize, AbstractInitializer kernelInitializer, AbstractInitializer biasInitializer,
-			AbstractActivation activation)
+	public Layer(int neuronSize, AbstractInitializer kernelInitializer, AbstractActivation activation)
 	{
 		neurons = new Neurons[neuronSize];
 		for (int i = 0; i < neurons.length; i++)
 		{
 			neurons[i] = new Neurons(kernelInitializer);
 		}
-		this.biasInitializer = biasInitializer;
 		this.activation = activation;
 	}
 
@@ -31,40 +26,21 @@ public abstract class Layer
 		input = data;
 		for (int i = 0; i < data.length; i++)
 		{
-			neurons[i].dataIn(data[i]);
+			neurons[i].dataIn(data);
 		}
-		output = calculate(input, bias, activation);
+		output = calculate(input, activation);
 	}
 
-	private double[] calculate(double[] input, double[] bias, AbstractActivation activation)
+	private double[] calculate(double[] input, AbstractActivation activation)
 	{
-		double[][] result = new double[neurons.length][];
-		double[] output = new double[linkSize];
+		double[] output = new double[neurons.length];
 
 		for (int i = 0; i < output.length; i++)
 		{
-			output[i] = 0;
+			output[i] = neurons[i].dataOut();
 		}
 
-		for (int i = 0; i < neurons.length; i++)
-		{
-			result[i] = neurons[i].dataOut();
-		}
-
-		for (int i = 0; i < output.length; i++)
-		{
-			for (int j = 0; j < neurons.length; j++)
-			{
-				output[i] = output[i] + result[j][i];
-			}
-		}
-
-		for (int i = 0; i < output.length; i++)
-		{
-			output[i] = output[i] + bias[i];
-		}
-
-		output = activation.getError(output);
+		output = activation.calculate(output);
 
 		return output;
 	}
@@ -81,7 +57,6 @@ public abstract class Layer
 		{
 			neuron.setLinkSize(linkSize);
 		}
-		bias = biasInitializer.initialize(linkSize);
 	}
 
 	public int getNeuronSize()
@@ -97,6 +72,14 @@ public abstract class Layer
 		}
 	}
 
+	public void updateBias(double[] bias)
+	{
+		for (int i = 0; i < neurons.length; i++)
+		{
+			neurons[i].updateBias(bias[i]);
+		}
+	}
+
 	public double[][] getWeight()
 	{
 		double[][] weight = new double[neurons.length][];
@@ -107,5 +90,22 @@ public abstract class Layer
 		}
 
 		return weight;
+	}
+
+	public double[] getBias()
+	{
+		double[] bias = new double[neurons.length];
+
+		for (int i = 0; i < neurons.length; i++)
+		{
+			bias[i] = neurons[i].getBias();
+		}
+
+		return bias;
+	}
+
+	public AbstractActivation getActivation()
+	{
+		return activation;
 	}
 }

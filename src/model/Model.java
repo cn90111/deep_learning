@@ -41,34 +41,29 @@ public abstract class Model
 		}
 	}
 
-	public void compile(AbstractLoss loss, AbstractOptimizer optimizer)
+	public void compile(int inputFeatureSize, AbstractLoss loss, AbstractOptimizer optimizer)
 	{
 		this.loss = loss;
 		this.optimizer = optimizer;
 
 		Layer[] layerArray = layers.toArray(new Layer[0]);
 
-		for (int i = 0; i < layerArray.length - 1; i++)
+		layerArray[0].setLinkSize(inputFeatureSize);
+		for (int i = 1; i < layerArray.length; i++)
 		{
-			layerArray[i].setLinkSize(layerArray[i].getNeuronSize());
+			layerArray[i].setLinkSize(layerArray[i - 1].getNeuronSize());
 		}
-		layerArray[layerArray.length - 1].setLinkSize(layerArray[layerArray.length - 1].getNeuronSize());
+
+		optimizer.setLayers(layerArray);
 	}
 
-	public final void fit(double[] feature, double[] trueValue, int epochs)
+	public void fit(double[] feature, double[] trueValue, int epochs)
 	{
 		double[] guessValue;
-		double error;
-		double[][][] updateWeight;
 		for (int i = 0; i < epochs; i++)
 		{
 			guessValue = predict(feature);
-			error = loss.calculate(guessValue, trueValue);
-			updateWeight = optimizer.updateWeight(error);
-			for (int j = 0; j < layers.size(); i++)
-			{
-				layerArray[j].updateWeight(updateWeight[j]);
-			}
+			optimizer.update(loss, guessValue, trueValue);
 		}
 	}
 
@@ -90,5 +85,15 @@ public abstract class Model
 			weight[i] = layerArray[i].getWeight();
 		}
 		return weight;
+	}
+
+	public double[][] getBias()
+	{
+		double[][] bias = new double[layers.size()][];
+		for (int i = 0; i < layerArray.length; i++)
+		{
+			bias[i] = layerArray[i].getBias();
+		}
+		return bias;
 	}
 }

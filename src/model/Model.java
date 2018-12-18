@@ -6,7 +6,7 @@ import layer.Layer;
 import loss.AbstractLoss;
 import optimizer.AbstractOptimizer;
 
-public abstract class Model
+public class Model
 {
 	private ArrayList<Layer> layers = new ArrayList<Layer>();
 	private Layer[] layerArray;
@@ -46,7 +46,7 @@ public abstract class Model
 		this.loss = loss;
 		this.optimizer = optimizer;
 
-		Layer[] layerArray = layers.toArray(new Layer[0]);
+		layerArray = layers.toArray(new Layer[0]);
 
 		layerArray[0].setLinkSize(inputFeatureSize);
 		for (int i = 1; i < layerArray.length; i++)
@@ -57,13 +57,20 @@ public abstract class Model
 		optimizer.setLayers(layerArray);
 	}
 
-	public void fit(double[] feature, double[] trueValue, int epochs)
+	public void fit(double[][] feature, double[][] trueValue, int epochs)
 	{
-		double[] guessValue;
+		double[] guessValue = new double[feature.length];
+		double error;
 		for (int i = 0; i < epochs; i++)
 		{
-			guessValue = predict(feature);
-			optimizer.update(loss, guessValue, trueValue);
+			error = 0;
+			for (int j = 0; j < feature.length; j++)
+			{
+				guessValue = predict(feature[j]);
+				optimizer.update(loss, guessValue, trueValue[j]);
+				error = error + loss.getError(guessValue, trueValue[j]);
+			}
+			System.out.println(i + "th mse:" + error / feature.length);
 		}
 	}
 

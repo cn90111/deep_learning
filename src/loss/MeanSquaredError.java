@@ -5,6 +5,7 @@ public class MeanSquaredError extends AbstractLoss
 	@Override
 	public double getError(double guessValue[], double trueValue[])
 	{
+		error = 0;
 		for (int i = 0; i < guessValue.length; i++)
 		{
 			error = error + Math.pow(guessValue[i] - trueValue[i], 2);

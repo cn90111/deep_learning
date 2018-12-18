@@ -5,6 +5,7 @@ public class CrossEntropy extends AbstractLoss
 	@Override
 	public double getError(double guessValue[], double trueValue[])
 	{
+		error = 0;
 		for (int i = 0; i < guessValue.length; i++)
 		{
 			error = error + trueValue[i] * Math.log(guessValue[i]);

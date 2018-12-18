@@ -3,7 +3,7 @@ package layer;
 import activation.AbstractActivation;
 import initializer.AbstractInitializer;
 
-public abstract class Layer
+public class Layer
 {
 	private Neurons[] neurons;
 	private AbstractActivation activation;
@@ -24,7 +24,7 @@ public abstract class Layer
 	public void dataIn(double[] data)
 	{
 		input = data;
-		for (int i = 0; i < data.length; i++)
+		for (int i = 0; i < neurons.length; i++)
 		{
 			neurons[i].dataIn(data);
 		}

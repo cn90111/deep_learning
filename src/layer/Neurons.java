@@ -17,6 +17,13 @@ public class Neurons
 		previousLinkBias = Math.random();
 	}
 
+	public Neurons(Neurons other)
+	{
+		this.linkSize = other.getWeight().length;
+		this.previousLinkWeight = other.getWeight();
+		this.previousLinkBias = other.getBias();
+	}
+
 	public void setLinkSize(int size)
 	{
 		linkSize = size;
@@ -58,7 +65,7 @@ public class Neurons
 
 	public double[] getWeight()
 	{
-		return previousLinkWeight;
+		return previousLinkWeight.clone();
 	}
 
 	public double getBias()

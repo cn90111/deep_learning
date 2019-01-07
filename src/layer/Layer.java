@@ -21,6 +21,13 @@ public class Layer
 		this.activation = activation;
 	}
 
+	public Layer(Layer other)
+	{
+		this.neurons = other.getNeurons();
+		this.activation = other.getActivation();
+		this.linkSize = other.getLinkSize();
+	}
+
 	public void dataIn(double[] data)
 	{
 		input = data;
@@ -29,6 +36,11 @@ public class Layer
 			neurons[i].dataIn(data);
 		}
 		output = calculate(input, activation);
+	}
+
+	public double[] getInput()
+	{
+		return input;
 	}
 
 	private double[] calculate(double[] input, AbstractActivation activation)
@@ -57,6 +69,11 @@ public class Layer
 		{
 			neuron.setLinkSize(linkSize);
 		}
+	}
+
+	public int getLinkSize()
+	{
+		return linkSize;
 	}
 
 	public int getNeuronSize()
@@ -107,5 +124,15 @@ public class Layer
 	public AbstractActivation getActivation()
 	{
 		return activation;
+	}
+
+	public Neurons[] getNeurons()
+	{
+		Neurons[] temp = new Neurons[neurons.length];
+		for (int i = 0; i < neurons.length; i++)
+		{
+			temp[i] = new Neurons(neurons[i]);
+		}
+		return temp;
 	}
 }

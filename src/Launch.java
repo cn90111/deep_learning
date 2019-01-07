@@ -5,31 +5,48 @@ import layer.Layer;
 import loss.AbstractLoss;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.BackPropagation;
+import optimizer.ParticleSwarmOptimization;
 
 public class Launch
 {
 	public static void main(String[] args)
 	{
 		int dataSize = 100;
-		int inputShape = 1;
+		int inputShape = 2;
 		int outputShape = 1;
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
 
-		// y = 2*x^2 + 1
-		for (int i = 0; i < feature.length; i++)
+		double ackleySum1;
+		double ackleySum2;
+
+		java.util.Random generator = new java.util.Random(0);
+
+		for (int i = 0; i < dataSize; i++)
 		{
-			feature[i][0] = Math.random() * 10;
-//			label[i][0] = 2 * Math.pow(feature[i][0], 2) + 1;
-			label[i][0] = 2 * feature[i][0] + 1;
+			ackleySum1 = 0;
+			ackleySum2 = 0;
+			for (int j = 0; j < inputShape; j++)
+			{
+				// feature[i][j] = Math.random() * 30 * 2 - 30;
+				feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
+				ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
+				ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
+			}
+			// y = 2*x^2 + 1
+//			label[i][0] = 2 * Math.pow(feature[i][0], 1) + 1;
+
+			// ackley function
+			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1 / inputShape) * ackleySum1))
+					- Math.exp((1 / inputShape) * ackleySum2) + 20 + Math.exp(1);
 		}
 
 		double[] temp;
 		int randomNumber;
 		for (int i = 0; i < label.length; i++)
 		{
-			randomNumber = (int) (Math.random() * label.length);
+			// randomNumber = (int) (Math.random() * label.length);
+			randomNumber = (int) (generator.nextDouble() * label.length);
 			temp = feature[i];
 			feature[i] = feature[randomNumber];
 			feature[randomNumber] = temp;
@@ -63,8 +80,9 @@ public class Launch
 		Model model = new Model();
 		model.add(new Layer(5, new Random(), new Sigmoid()));
 		model.add(new Layer(1, new Random(), new Relu()));
-		model.compile(inputShape, loss, new BackPropagation(0.05));
-		model.fit(trainFeature, trainLabel, 2000);
+//		model.compile(inputShape, loss, new BackPropagation(0.05));
+		model.compile(inputShape, loss, new ParticleSwarmOptimization(100, 0.8, 0.5, 1.2, 0.2, 99999));
+		model.fit(trainFeature, trainLabel, 10);
 		for (int i = 0; i < testFeature.length; i++)
 		{
 			predictLabel[i] = model.predict(testFeature[i]);

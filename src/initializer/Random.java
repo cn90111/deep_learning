@@ -8,7 +8,7 @@ public class Random extends AbstractInitializer
 		result = new double[length];
 		for (int i = 0; i < length; i++)
 		{
-			result[i] = Math.random();
+			result[i] = (Math.random() * 2) - 1; // 1 ~ -1
 		}
 		return result;
 	}

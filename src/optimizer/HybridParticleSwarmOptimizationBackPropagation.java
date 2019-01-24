@@ -3,15 +3,16 @@ package optimizer;
 import java.util.ArrayList;
 
 import layer.Layer;
-import loss.AbstractLoss;
+import loss.AbstractLossFunction;
 import pso.Particle;
 import pso.Solution;
 
-public class ParticleSwarmOptimization extends AbstractOptimizer
+public class HybridParticleSwarmOptimizationBackPropagation extends AbstractOptimizer
 {
 	private double c1;
 	private double c2;
 	private double maxW;
+	private double linearEndW;
 	private double w;
 	private double velocityLimit;
 	private Solution globalBestSolution;
@@ -22,20 +23,27 @@ public class ParticleSwarmOptimization extends AbstractOptimizer
 	private ArrayList<double[]> inputFeature;
 	private ArrayList<double[]> outputLabel;
 	private double updateCount;
+	private double linearEndCount;
+	private double k;
+	private AbstractLossFunction lossFunction;
 
-	public ParticleSwarmOptimization(int particleSize, double globalSearchWeight, double localSearchWeight,
-			double velocityRate, double velocityLimit, double solutionLimit)
+	public HybridParticleSwarmOptimizationBackPropagation(int particleSize, double globalSearchWeight,
+			double localSearchWeight, double velocityRate, double velocityLimit, double solutionLimit,
+			double linearEndCount, double nonlinearlyWeight)
 	{
 		this.c1 = localSearchWeight;
 		this.c2 = globalSearchWeight;
 		this.maxW = velocityRate;
 		this.velocityLimit = velocityLimit;
 		this.globalBestValue = 0;
+		this.linearEndCount = linearEndCount;
+		this.k = nonlinearlyWeight;
 
 		inputFeature = new ArrayList<double[]>();
 		outputLabel = new ArrayList<double[]>();
 
 		updateCount = 0;
+		linearEndW = maxW / 2; // http://www.cse.cuhk.edu.hk/~lyu/paper_pdf/sdarticle.pdf
 
 		particle = new Particle[particleSize + 1]; // +1 save globalSolution
 
@@ -46,9 +54,10 @@ public class ParticleSwarmOptimization extends AbstractOptimizer
 	}
 
 	@Override
-	public void setLayers(Layer[] layers)
+	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
 		this.layers = layers;
+		this.lossFunction = lossFunction;
 		double[][][] weight = new double[layers.length][][];
 		double[][] bias = new double[layers.length][];
 		evaluateLayers = new Layer[layers.length];
@@ -131,10 +140,17 @@ public class ParticleSwarmOptimization extends AbstractOptimizer
 	}
 
 	@Override
-	public void update(AbstractLoss loss, double[] guessValue, double[] trueValue)
+	public void update(double[] guessValue, double[] trueValue)
 	{
 		updateCount = updateCount + 1;
-		w = maxW / updateCount;
+		if (updateCount < linearEndCount)
+		{
+			w = maxW - (linearEndW / linearEndCount) * updateCount;
+		}
+		else
+		{
+			w = (maxW - linearEndW) * Math.exp((linearEndCount - updateCount) / k);
+		}
 		double[] feature = layers[0].getInput();
 		if (!(inputFeature.contains(feature) && inputFeature.contains(trueValue)))
 		{
@@ -143,7 +159,7 @@ public class ParticleSwarmOptimization extends AbstractOptimizer
 		}
 
 		transit();
-		evaluate(loss, inputFeature, outputLabel);
+		evaluate(lossFunction, inputFeature, outputLabel);
 		determine();
 
 		double[][][] weight = globalBestSolution.getWeight();
@@ -209,7 +225,7 @@ public class ParticleSwarmOptimization extends AbstractOptimizer
 		particle.setNowSolution(new Solution(nowWeight, nowBias));
 	}
 
-	private void evaluate(AbstractLoss loss, ArrayList<double[]> feature, ArrayList<double[]> label)
+	private void evaluate(AbstractLossFunction loss, ArrayList<double[]> feature, ArrayList<double[]> label)
 	{
 		// evaluate globalBestSolution loss with other feature input
 		particle[particle.length - 1].setNowSolution(new Solution(globalBestSolution));
@@ -226,7 +242,8 @@ public class ParticleSwarmOptimization extends AbstractOptimizer
 		}
 	}
 
-	private void evaluate(Particle particle, AbstractLoss loss, ArrayList<double[]> feature, ArrayList<double[]> label)
+	private void evaluate(Particle particle, AbstractLossFunction loss, ArrayList<double[]> feature,
+			ArrayList<double[]> label)
 	{
 		double[][][] weight = particle.getNowSolution().getWeight();
 		double[][] bias = particle.getNowSolution().getBias();

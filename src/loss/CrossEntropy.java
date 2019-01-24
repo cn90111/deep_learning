@@ -1,6 +1,6 @@
 package loss;
 
-public class CrossEntropy extends AbstractLoss
+public class CrossEntropy extends AbstractLossFunction
 {
 	@Override
 	public double getError(double guessValue[], double trueValue[])

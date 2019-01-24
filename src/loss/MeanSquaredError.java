@@ -1,6 +1,6 @@
 package loss;
 
-public class MeanSquaredError extends AbstractLoss
+public class MeanSquaredError extends AbstractLossFunction
 {
 	@Override
 	public double getError(double guessValue[], double trueValue[])

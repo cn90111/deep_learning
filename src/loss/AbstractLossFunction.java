@@ -1,6 +1,6 @@
 package loss;
 
-public abstract class AbstractLoss
+public abstract class AbstractLossFunction
 {
 	protected double error;
 

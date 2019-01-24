@@ -3,14 +3,15 @@ package model;
 import java.util.ArrayList;
 
 import layer.Layer;
-import loss.AbstractLoss;
+import loss.AbstractLossFunction;
 import optimizer.AbstractOptimizer;
+import optimizer.SupportBatchUpdate;
 
 public class Model
 {
 	private ArrayList<Layer> layers = new ArrayList<Layer>();
 	private Layer[] layerArray;
-	private AbstractLoss loss;
+	private AbstractLossFunction loss;
 	private AbstractOptimizer optimizer;
 
 	public Model()
@@ -41,7 +42,7 @@ public class Model
 		}
 	}
 
-	public void compile(int inputFeatureSize, AbstractLoss loss, AbstractOptimizer optimizer)
+	public void compile(int inputFeatureSize, AbstractLossFunction loss, AbstractOptimizer optimizer)
 	{
 		this.loss = loss;
 		this.optimizer = optimizer;
@@ -54,7 +55,7 @@ public class Model
 			layerArray[i].setLinkSize(layerArray[i - 1].getNeuronSize());
 		}
 
-		optimizer.setLayers(layerArray);
+		optimizer.setConfiguration(layerArray, loss);
 	}
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs)
@@ -67,8 +68,15 @@ public class Model
 			for (int j = 0; j < feature.length; j++)
 			{
 				guessValue = predict(feature[j]);
-				optimizer.update(loss, guessValue, trueValue[j]);
+				optimizer.update(guessValue, trueValue[j]);
 				error = error + loss.getError(guessValue, trueValue[j]);
+			}
+			if (optimizer instanceof SupportBatchUpdate)
+			{
+				if (feature.length % ((SupportBatchUpdate) optimizer).getBatchSize() != 0)
+				{
+					((SupportBatchUpdate) optimizer).batchUpdate();
+				}
 			}
 			System.out.println(i + "th mse:" + error / feature.length);
 		}

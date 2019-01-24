@@ -1,7 +1,7 @@
 package optimizer;
 
 import layer.Layer;
-import loss.AbstractLoss;
+import loss.AbstractLossFunction;
 
 public abstract class AbstractOptimizer
 {
@@ -9,7 +9,7 @@ public abstract class AbstractOptimizer
 	{
 	}
 
-	public abstract void setLayers(Layer[] layers);
+	public abstract void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction);
 
-	public abstract void update(AbstractLoss loss, double guessValue[], double trueValue[]);
+	public abstract void update(double guessValue[], double trueValue[]);
 }

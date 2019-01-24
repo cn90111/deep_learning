@@ -2,17 +2,17 @@ import activation.Relu;
 import activation.Sigmoid;
 import initializer.Random;
 import layer.Layer;
-import loss.AbstractLoss;
+import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.ParticleSwarmOptimization;
+import optimizer.BatchParticleSwarmOptimization;
 
 public class Launch
 {
 	public static void main(String[] args)
 	{
 		int dataSize = 100;
-		int inputShape = 2;
+		int inputShape = 1;
 		int outputShape = 1;
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
@@ -34,7 +34,10 @@ public class Launch
 				ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
 			}
 			// y = 2*x^2 + 1
-//			label[i][0] = 2 * Math.pow(feature[i][0], 1) + 1;
+			// label[i][0] = 2 * Math.pow(feature[i][0], 2) + 1;
+
+			// y = 2*x + 1
+			// label[i][0] = 2 * feature[i][0] + 1;
 
 			// ackley function
 			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1 / inputShape) * ackleySum1))
@@ -75,13 +78,14 @@ public class Launch
 			}
 		}
 
-		AbstractLoss loss = new MeanSquaredError();
+		AbstractLossFunction loss = new MeanSquaredError();
 
 		Model model = new Model();
 		model.add(new Layer(5, new Random(), new Sigmoid()));
 		model.add(new Layer(1, new Random(), new Relu()));
-//		model.compile(inputShape, loss, new BackPropagation(0.05));
-		model.compile(inputShape, loss, new ParticleSwarmOptimization(100, 0.8, 0.5, 1.2, 0.2, 99999));
+		// model.compile(inputShape, loss, new BackPropagation(0.01, 10));
+		model.compile(inputShape, loss,
+				new BatchParticleSwarmOptimization(100, 0.8, 0.5, 1.2, 0.5, 99999, 10 * dataSize / 4, 1, 10));
 		model.fit(trainFeature, trainLabel, 10);
 		for (int i = 0; i < testFeature.length; i++)
 		{

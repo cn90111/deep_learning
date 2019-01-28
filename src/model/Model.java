@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
-import optimizer.AbstractOptimizer;
+import optimizer.Optimizer;
 import optimizer.SupportBatchUpdate;
 
 public class Model
@@ -12,7 +12,7 @@ public class Model
 	private ArrayList<Layer> layers = new ArrayList<Layer>();
 	private Layer[] layerArray;
 	private AbstractLossFunction loss;
-	private AbstractOptimizer optimizer;
+	private Optimizer optimizer;
 
 	public Model()
 	{
@@ -42,7 +42,7 @@ public class Model
 		}
 	}
 
-	public void compile(int inputFeatureSize, AbstractLossFunction loss, AbstractOptimizer optimizer)
+	public void compile(int inputFeatureSize, AbstractLossFunction loss, Optimizer optimizer)
 	{
 		this.loss = loss;
 		this.optimizer = optimizer;
@@ -65,6 +65,7 @@ public class Model
 		for (int i = 0; i < epochs; i++)
 		{
 			error = 0;
+			optimizer.newEpoch(i);
 			for (int j = 0; j < feature.length; j++)
 			{
 				guessValue = predict(feature[j]);

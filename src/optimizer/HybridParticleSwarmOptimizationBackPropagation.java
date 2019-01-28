@@ -1,165 +1,105 @@
 package optimizer;
 
-import java.util.ArrayList;
-
+import activation.AbstractActivation;
+import activation.Differentiable;
 import layer.Layer;
-import loss.AbstractLossFunction;
 import pso.Particle;
 import pso.Solution;
 
-public class HybridParticleSwarmOptimizationBackPropagation extends AbstractOptimizer
+// PSO-BP
+// https://www.sciencedirect.com/science/article/pii/S0096300306008277
+public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticleSwarmOptimization
 {
-	private double c1;
-	private double c2;
-	private double maxW;
-	private double linearEndW;
-	private double w;
-	private double velocityLimit;
-	private Solution globalBestSolution;
-	private double globalBestValue;
-	private Particle[] particle;
-	private Layer[] layers;
-	private Layer[] evaluateLayers;
-	private ArrayList<double[]> inputFeature;
-	private ArrayList<double[]> outputLabel;
-	private double updateCount;
-	private double linearEndCount;
-	private double k;
-	private AbstractLossFunction lossFunction;
+	public static final int FIRST_CONDITION = 0;
+	public static final int SECOND_CONDITION = 1;
 
-	public HybridParticleSwarmOptimizationBackPropagation(int particleSize, double globalSearchWeight,
-			double localSearchWeight, double velocityRate, double velocityLimit, double solutionLimit,
-			double linearEndCount, double nonlinearlyWeight)
+	private int mode;
+	private int bpSearchGenerations;
+	private int bpCount;
+
+	private double learningRate;
+	private double originLearningRate;
+	private double learningRateDecayRate;
+
+	private boolean switchToBP;
+	private int psoGlobalSolutionFixCount;
+	private double previousPsoGlobalValue;
+
+	private Particle worstParticle;
+	private double worstValue;
+
+	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
+			int bpSearchGenerations, double learningRate, double learningRateDecayRate)
 	{
-		this.c1 = localSearchWeight;
-		this.c2 = globalSearchWeight;
-		this.maxW = velocityRate;
-		this.velocityLimit = velocityLimit;
-		this.globalBestValue = 0;
-		this.linearEndCount = linearEndCount;
-		this.k = nonlinearlyWeight;
-
-		inputFeature = new ArrayList<double[]>();
-		outputLabel = new ArrayList<double[]>();
-
-		updateCount = 0;
-		linearEndW = maxW / 2; // http://www.cse.cuhk.edu.hk/~lyu/paper_pdf/sdarticle.pdf
-
-		particle = new Particle[particleSize + 1]; // +1 save globalSolution
-
-		for (int i = 0; i < particle.length; i++)
-		{
-			particle[i] = new Particle(velocityLimit, solutionLimit);
-		}
-	}
-
-	@Override
-	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
-	{
-		this.layers = layers;
-		this.lossFunction = lossFunction;
-		double[][][] weight = new double[layers.length][][];
-		double[][] bias = new double[layers.length][];
-		evaluateLayers = new Layer[layers.length];
-		for (int i = 0; i < layers.length; i++)
-		{
-			weight[i] = layers[i].getWeight();
-			bias[i] = layers[i].getBias();
-			evaluateLayers[i] = new Layer(layers[i]);
-		}
-
-		globalBestSolution = new Solution();
-		globalBestSolution.setWeight(weight);
-		globalBestSolution.setBias(bias);
-
-		for (int i = 0; i < particle.length; i++)
-		{
-			particleInit(particle[i], weight, bias);
-		}
-	}
-
-	private void particleInit(Particle particle, double[][][] weight, double[][] bias)
-	{
-		setVelocity(particle, weight, bias);
-		setSolution(particle, weight, bias);
-	}
-
-	private void setVelocity(Particle particle, double[][][] weight, double[][] bias)
-	{
-		double[][][] weightVelocity = new double[weight.length][][];
-		double[][] biasVelocity = new double[bias.length][];
-		for (int i = 0; i < weightVelocity.length; i++)
-		{
-			weightVelocity[i] = new double[weight[i].length][];
-			for (int j = 0; j < weightVelocity[i].length; j++)
-			{
-				weightVelocity[i][j] = new double[weight[i][j].length];
-				for (int k = 0; k < weightVelocity[i][j].length; k++)
-				{
-					weightVelocity[i][j][k] = Math.random() * (velocityLimit / 10) * 2 - (velocityLimit / 10);
-				}
-			}
-		}
-		for (int i = 0; i < biasVelocity.length; i++)
-		{
-			biasVelocity[i] = new double[bias[i].length];
-			for (int j = 0; j < biasVelocity[i].length; j++)
-			{
-				biasVelocity[i][j] = Math.random() * (velocityLimit / 10) * 2 - (velocityLimit / 10);
-			}
-		}
-		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
-	}
-
-	private void setSolution(Particle particle, double[][][] weight, double[][] bias)
-	{
-		double[][][] solutionWeight = new double[weight.length][][];
-		double[][] solutionBias = new double[bias.length][];
-		for (int i = 0; i < solutionWeight.length; i++)
-		{
-			solutionWeight[i] = new double[weight[i].length][];
-			for (int j = 0; j < solutionWeight[i].length; j++)
-			{
-				solutionWeight[i][j] = new double[weight[i][j].length];
-				for (int k = 0; k < solutionWeight[i][j].length; k++)
-				{
-					solutionWeight[i][j][k] = (Math.random() * 2) - 1; // 1 ~ -1;
-				}
-			}
-		}
-		for (int i = 0; i < solutionBias.length; i++)
-		{
-			solutionBias[i] = new double[bias[i].length];
-			for (int j = 0; j < solutionBias[i].length; j++)
-			{
-				solutionBias[i][j] = (Math.random() * 2) - 1; // 1 ~ -1;
-			}
-		}
-		particle.setNowSolution(new Solution(solutionWeight, solutionBias));
-		particle.setLocalBestSolution(new Solution(solutionWeight, solutionBias));
+		super(psoParameter, batch);
+		this.mode = condition;
+		this.bpSearchGenerations = bpSearchGenerations;
+		this.bpCount = 0;
+		this.originLearningRate = learningRate;
+		this.learningRateDecayRate = learningRateDecayRate;
+		this.switchToBP = false;
+		this.psoGlobalSolutionFixCount = 0;
+		this.previousPsoGlobalValue = 0;
+		this.worstParticle = null;
+		this.worstValue = 0;
 	}
 
 	@Override
 	public void update(double[] guessValue, double[] trueValue)
 	{
 		updateCount = updateCount + 1;
-		if (updateCount < linearEndCount)
+		if (updateCount < pso.linearEndCount)
 		{
-			w = maxW - (linearEndW / linearEndCount) * updateCount;
+			w = pso.maxW - (pso.linearEndW / pso.linearEndCount) * updateCount;
 		}
 		else
 		{
-			w = (maxW - linearEndW) * Math.exp((linearEndCount - updateCount) / k);
-		}
-		double[] feature = layers[0].getInput();
-		if (!(inputFeature.contains(feature) && inputFeature.contains(trueValue)))
-		{
-			inputFeature.add(feature);
-			outputLabel.add(trueValue);
+			w = (pso.maxW - pso.linearEndW) * Math.exp((pso.linearEndCount - updateCount) / pso.nonlinearlyWeight);
 		}
 
+		if (batchCount < batchSize)
+		{
+			double[] feature = layers[0].getInput();
+
+			saveValueToArray(featureArray, feature, batchCount);
+			saveValueToArray(labelArray, trueValue, batchCount);
+
+			batchCount = batchCount + 1;
+		}
+		else
+		{
+			batchUpdate(guessValue, trueValue);
+		}
+	}
+
+	public void batchUpdate(double[] guessValue, double[] trueValue)
+	{
+		if (switchToBP == false)
+		{
+			psoUpdate();
+
+			switch (mode)
+			{
+				case FIRST_CONDITION:
+					firstCondition();
+					break;
+				case SECOND_CONDITION:
+					secondCondition();
+					break;
+				default:
+					throw new UnsupportedOperationException("PSO-BP only two condition");
+			}
+		}
+		else
+		{
+			bpUpdate(guessValue, trueValue);
+		}
+	}
+
+	private void psoUpdate()
+	{
 		transit();
-		evaluate(lossFunction, inputFeature, outputLabel);
+		evaluate(featureArray, labelArray);
 		determine();
 
 		double[][][] weight = globalBestSolution.getWeight();
@@ -171,124 +111,167 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AbstractOpti
 		}
 	}
 
-	private void transit()
+	private void firstCondition()
 	{
-		double[][][] globalBestWeight = globalBestSolution.getWeight();
-		double[][] globalBestBias = globalBestSolution.getBias();
-		for (int i = 0; i < particle.length; i++)
+		if (previousPsoGlobalValue == 0)
 		{
-			transit(particle[i], globalBestWeight, globalBestBias);
+			previousPsoGlobalValue = globalBestValue;
+		}
+		else if (previousPsoGlobalValue == globalBestValue)
+		{
+			psoGlobalSolutionFixCount = psoGlobalSolutionFixCount + 1;
+		}
+		else
+		{
+			psoGlobalSolutionFixCount = 0;
+			previousPsoGlobalValue = globalBestValue;
+		}
+
+		if (psoGlobalSolutionFixCount >= 10)
+		{
+			switchToBP = true;
+			psoGlobalSolutionFixCount = 0;
+			previousPsoGlobalValue = 0;
 		}
 	}
 
-	private void transit(Particle particle, double[][][] globalBestWeight, double[][] globalBestBias)
+	private void secondCondition()
 	{
-		double[][][] weightVelocity = particle.getVelocity().getWeight();
-		double[][] biasVelocity = particle.getVelocity().getBias();
-		double[][][] nowWeight = particle.getNowSolution().getWeight();
-		double[][] nowBias = particle.getNowSolution().getBias();
-		double[][][] localBestWeight = particle.getLocalBestSolution().getWeight();
-		double[][] localBestBias = particle.getLocalBestSolution().getBias();
-
-		double localRandom;
-		double globalRandom;
-
-		for (int i = 0; i < weightVelocity.length; i++)
-		{
-			for (int j = 0; j < weightVelocity[i].length; j++)
-			{
-				for (int k = 0; k < weightVelocity[i][j].length; k++)
-				{
-					localRandom = (Math.random() * 2) - 1; // 1 ~ -1
-					globalRandom = (Math.random() * 2) - 1; // 1 ~ -1
-					weightVelocity[i][j][k] = w * weightVelocity[i][j][k]
-							+ c1 * localRandom * (localBestWeight[i][j][k] - nowWeight[i][j][k])
-							+ c2 * globalRandom * (globalBestWeight[i][j][k] - nowWeight[i][j][k]);
-					nowWeight[i][j][k] = nowWeight[i][j][k] + weightVelocity[i][j][k];
-				}
-			}
-		}
-
-		for (int i = 0; i < biasVelocity.length; i++)
-		{
-			for (int j = 0; j < biasVelocity[i].length; j++)
-			{
-				localRandom = (Math.random() * 2) - 1; // 1 ~ -1
-				globalRandom = (Math.random() * 2) - 1; // 1 ~ -1
-				biasVelocity[i][j] = w * biasVelocity[i][j] + c1 * localRandom * (localBestBias[i][j] - nowBias[i][j])
-						+ c2 * globalRandom * (globalBestBias[i][j] - nowBias[i][j]);
-				nowBias[i][j] = nowBias[i][j] + biasVelocity[i][j];
-			}
-		}
-
-		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
-		particle.setNowSolution(new Solution(nowWeight, nowBias));
+		switchToBP = true;
 	}
 
-	private void evaluate(AbstractLossFunction loss, ArrayList<double[]> feature, ArrayList<double[]> label)
+	private void bpUpdate(double[] guessValue, double[] trueValue)
 	{
-		// evaluate globalBestSolution loss with other feature input
-		particle[particle.length - 1].setNowSolution(new Solution(globalBestSolution));
-		particle[particle.length - 1].setLocalBestValue(0);
-
-		for (int i = 0; i < particle.length; i++)
-		{
-			particle[i].setLocalBestValue(particle[i].getLocalBestValue() * 1.1);
-		}
-
-		for (int i = 0; i < particle.length; i++)
-		{
-			evaluate(particle[i], loss, feature, label);
-		}
-	}
-
-	private void evaluate(Particle particle, AbstractLossFunction loss, ArrayList<double[]> feature,
-			ArrayList<double[]> label)
-	{
-		double[][][] weight = particle.getNowSolution().getWeight();
-		double[][] bias = particle.getNowSolution().getBias();
-		double[] predictLabel;
+		double[] previousError;
+		double[] nowError;
 		double error = 0;
 
-		for (int i = 0; i < evaluateLayers.length; i++)
+		bpCount = bpCount + 1;
+
+		setSolutionWeightToLayers(globalBestSolution);
+		nowError = lossFunction.toDifferentiate(guessValue, trueValue);
+		for (int i = evaluateLayers.length - 1; i >= 0; i--)
 		{
-			evaluateLayers[i].updateWeight(weight[i]);
-			evaluateLayers[i].updateBias(bias[i]);
+			previousError = activationBackPropagation(nowError, evaluateLayers[i]);
+			nowError = calculateError(previousError, evaluateLayers[i].getWeight());
+			update(evaluateLayers[i], previousError, evaluateLayers[i].getInput());
 		}
 
-		for (int i = 0; i < feature.size(); i++)
+		for (int i = 0; i < featureArray.length; i++)
 		{
-			predictLabel = predict(feature.get(i));
-			error = error + loss.getError(predictLabel, label.get(i));
+			error = error + evaluate(featureArray[i], labelArray[i]);
 		}
 
-		if (error < particle.getLocalBestValue() || particle.getLocalBestValue() == 0)
-		{
-			particle.setLocalBestValue(error);
-			particle.setLocalBestSolution(particle.getNowSolution());
-		}
-	}
-
-	private void determine()
-	{
-		globalBestValue = globalBestValue * 1.1;
 		for (int i = 0; i < particle.length; i++)
 		{
-			if (particle[i].getLocalBestValue() < globalBestValue || globalBestValue == 0)
+			if (worstValue < particle[i].getLocalBestValue() || worstValue == 0)
 			{
-				globalBestValue = particle[i].getLocalBestValue();
-				globalBestSolution = particle[i].getLocalBestSolution();
+				worstParticle = particle[i];
+				worstValue = particle[i].getLocalBestValue();
 			}
+		}
+		
+		if (error < globalBestValue)
+		{
+			double[][][] weight = new double[evaluateLayers.length][][];
+			double[][] bias = new double[evaluateLayers.length][];
+
+			for (int i = 0; i < evaluateLayers.length; i++)
+			{
+				weight[i] = evaluateLayers[i].getWeight();
+				bias[i] = evaluateLayers[i].getBias();
+			}
+
+			globalBestValue = error;
+			globalBestSolution = new Solution(weight, bias);
+
+			for (int i = 0; i < layers.length; i++)
+			{
+				layers[i].updateWeight(weight[i]);
+				layers[i].updateBias(bias[i]);
+			}
+		}
+		else if (error < worstValue)
+		{
+			double[][][] weight = new double[evaluateLayers.length][][];
+			double[][] bias = new double[evaluateLayers.length][];
+
+			for (int i = 0; i < evaluateLayers.length; i++)
+			{
+				weight[i] = evaluateLayers[i].getWeight();
+				bias[i] = evaluateLayers[i].getBias();
+			}
+
+			Solution solution = new Solution(weight, bias);
+			worstParticle.setLocalBestSolution(solution);
+			worstParticle.setLocalBestValue(error);
+			worstParticle.setNowSolution(solution);
+			worstParticle.setNowValue(error);
+			setVelocity(worstParticle, weight, bias);
+		}
+
+		if (bpCount >= bpSearchGenerations)
+		{
+			switchToBP = false;
+			bpCount = 0;
 		}
 	}
 
-	private double[] predict(double[] feature)
+	private double[] activationBackPropagation(double[] nowError, Layer previousLayer)
 	{
-		evaluateLayers[0].dataIn(feature);
-		for (int i = 1; i < evaluateLayers.length; i++)
+		double[] previousDataOutput;
+		double[] previousError = null;
+		AbstractActivation previousActivation;
+
+		previousActivation = previousLayer.getActivation();
+		if (!(previousActivation instanceof Differentiable))
 		{
-			evaluateLayers[i].dataIn(evaluateLayers[i - 1].dataOut());
+			System.out.println("Activation can't Differential");
+			System.exit(1);
 		}
-		return evaluateLayers[evaluateLayers.length - 1].dataOut();
+		previousDataOutput = previousLayer.dataOut();
+		previousError = ((Differentiable) previousActivation).toDifferentiate(previousDataOutput);
+		for (int i = 0; i < previousError.length; i++)
+		{
+			previousError[i] = previousError[i] * nowError[i];
+		}
+
+		return previousError;
+	}
+
+	private double[] calculateError(double[] error, double[][] weight)
+	{
+		double[] errorValue = new double[weight[0].length];
+		for (int i = 0; i < errorValue.length; i++)
+		{
+			errorValue[i] = 0;
+			for (int j = 0; j < error.length; j++)
+			{
+				errorValue[i] = errorValue[i] + error[j] * weight[j][i];
+			}
+		}
+		return errorValue;
+	}
+
+	private void update(Layer layer, double[] error, double[] previousDataOutput)
+	{
+		double[][] weight = layer.getWeight();
+		double[] bias = layer.getBias();
+		for (int i = 0; i < error.length; i++)
+		{
+			for (int j = 0; j < previousDataOutput.length; j++)
+			{
+				weight[i][j] = weight[i][j] - learningRate * error[i] * previousDataOutput[j];
+			}
+			bias[i] = bias[i] - learningRate * error[i];
+		}
+		layer.updateWeight(weight);
+		layer.updateBias(bias);
+	}
+
+	@Override
+	public void newEpoch(int currentEpoch)
+	{
+		learningRate = originLearningRate * Math.exp(-1 * learningRateDecayRate * currentEpoch);
 	}
 }

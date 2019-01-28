@@ -5,7 +5,8 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.BatchParticleSwarmOptimization;
+import optimizer.HybridParticleSwarmOptimizationBackPropagation;
+import pso.Parameter;
 
 public class Launch
 {
@@ -19,6 +20,8 @@ public class Launch
 
 		double ackleySum1;
 		double ackleySum2;
+
+		long timeStart, timeEnd;
 
 		java.util.Random generator = new java.util.Random(0);
 
@@ -84,9 +87,23 @@ public class Launch
 		model.add(new Layer(5, new Random(), new Sigmoid()));
 		model.add(new Layer(1, new Random(), new Relu()));
 		// model.compile(inputShape, loss, new BackPropagation(0.01, 10));
-		model.compile(inputShape, loss,
-				new BatchParticleSwarmOptimization(100, 0.8, 0.5, 1.2, 0.5, 99999, 10 * dataSize / 4, 1, 10));
+
+		// velocity : +- velocityLimit / 10
+		// solution : 1 ~ -1
+//		pso.Parameter psoParameter = new Parameter(100, 0.8, 0.5, 1.2, 0.5, 0.5 / 10, -0.5 / 10, 99999, 1, -1,
+//				10 * dataSize / 4, 1);
+//		model.compile(inputShape, loss, new BatchParticleSwarmOptimization(psoParameter, 10));
+
+		// velocity : 1 ~ 0
+		// solution : 1 ~ 0
+		pso.Parameter psoParameter = new Parameter(100, 0.8, 0.5, 1.2, 3, 1, 0, 99999, 1, 0, 10 * dataSize / 4, 1);
+		model.compile(inputShape, loss, new HybridParticleSwarmOptimizationBackPropagation(psoParameter,
+				trainFeature.length, HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, trainFeature.length*3, 0.01, 0.05));
+
+		timeStart = System.currentTimeMillis();
 		model.fit(trainFeature, trainLabel, 10);
+		timeEnd = System.currentTimeMillis();
+
 		for (int i = 0; i < testFeature.length; i++)
 		{
 			predictLabel[i] = model.predict(testFeature[i]);
@@ -95,5 +112,6 @@ public class Launch
 		{
 			System.out.println(i + "th final mse:" + loss.getError(predictLabel[i], testLabel[i]));
 		}
+		System.out.println("train time : " + (timeEnd - timeStart) + " ms");
 	}
 }

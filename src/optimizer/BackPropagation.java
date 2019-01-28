@@ -5,15 +5,16 @@ import activation.Differentiable;
 import layer.Layer;
 import loss.AbstractLossFunction;
 
-public class BackPropagation extends AbstractOptimizer implements SupportBatchUpdate
+// batch bp 
+// https://stats.stackexchange.com/questions/174708/how-are-weights-updated-in-the-batch-learning-method-in-neural-networks
+public class BackPropagation extends Optimizer implements SupportBatchUpdate
 {
 	private double learningRate;
-	private Layer[] layers;
 	private int batchSize;
 	private int batchCount;
-	private double[][] sumErrorValue; // https://stats.stackexchange.com/questions/174708/how-are-weights-updated-in-the-batch-learning-method-in-neural-networks
-	private AbstractLossFunction lossFunction;
-	
+	private double[][] sumErrorValue;
+	public double updateCount;
+
 	public BackPropagation(double learningRate)
 	{
 		this(learningRate, 1);
@@ -77,22 +78,6 @@ public class BackPropagation extends AbstractOptimizer implements SupportBatchUp
 		}
 	}
 
-	private void update(Layer layer, double[] error, double[] previousDataOutput)
-	{
-		double[][] weight = layer.getWeight();
-		double[] bias = layer.getBias();
-		for (int i = 0; i < error.length; i++)
-		{
-			for (int j = 0; j < previousDataOutput.length; j++)
-			{
-				weight[i][j] = weight[i][j] - learningRate * error[i] * previousDataOutput[j];
-			}
-			bias[i] = bias[i] - learningRate * error[i];
-		}
-		layer.updateWeight(weight);
-		layer.updateBias(bias);
-	}
-
 	private double[] activationBackPropagation(double[] nowError, Layer previousLayer)
 	{
 		double[] previousDataOutput;
@@ -139,9 +124,31 @@ public class BackPropagation extends AbstractOptimizer implements SupportBatchUp
 		resetBatch();
 	}
 
+	private void update(Layer layer, double[] error, double[] previousDataOutput)
+	{
+		double[][] weight = layer.getWeight();
+		double[] bias = layer.getBias();
+		for (int i = 0; i < error.length; i++)
+		{
+			for (int j = 0; j < previousDataOutput.length; j++)
+			{
+				weight[i][j] = weight[i][j] - learningRate * error[i] * previousDataOutput[j];
+			}
+			bias[i] = bias[i] - learningRate * error[i];
+		}
+		layer.updateWeight(weight);
+		layer.updateBias(bias);
+	}
+
 	@Override
 	public int getBatchSize()
 	{
 		return batchSize;
+	}
+
+	@Override
+	public void newEpoch(int currentEpoch)
+	{
+
 	}
 }

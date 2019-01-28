@@ -2,6 +2,7 @@ package pso;
 
 public class Particle
 {
+	private double nowValue = 0;
 	private double localBestValue = 0;
 	private Solution nowSolution;
 	private Solution localBestSolution;
@@ -15,6 +16,16 @@ public class Particle
 		this.solutionLimit = solutionLimit;
 	}
 
+	public void setNowValue(double value)
+	{
+		nowValue = value;
+	}
+
+	public double getNowValue()
+	{
+		return nowValue;
+	}
+	
 	public void setLocalBestValue(double value)
 	{
 		localBestValue = value;

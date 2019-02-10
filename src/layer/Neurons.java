@@ -14,7 +14,7 @@ public class Neurons
 	public Neurons(AbstractInitializer initializer)
 	{
 		this.initializer = initializer;
-		previousLinkBias = Math.random();
+		previousLinkBias = 0;
 	}
 
 	public Neurons(Neurons other)

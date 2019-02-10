@@ -100,7 +100,7 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 			array[i] = new double[arraySize[i].length];
 			for (int j = 0; j < array[i].length; j++)
 			{
-				array[i][j] = Math.random() * (upperLimit - lowerLimit) + lowerLimit; // upperLimit ~ lowerLimit;
+				array[i][j] = Math.random() * (upperLimit - lowerLimit) + lowerLimit; // upperLimit ~ lowerLimit
 			}
 		}
 		return array;

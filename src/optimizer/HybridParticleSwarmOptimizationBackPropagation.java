@@ -94,6 +94,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		{
 			bpUpdate(guessValue, trueValue);
 		}
+		// BS-IPSO-BP
+		// resetBatch();
 	}
 
 	private void psoUpdate()
@@ -147,6 +149,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		double error = 0;
 
 		bpCount = bpCount + 1;
+		worstValue = 0;
 
 		setSolutionWeightToLayers(globalBestSolution);
 		nowError = lossFunction.toDifferentiate(guessValue, trueValue);
@@ -170,7 +173,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 				worstValue = particle[i].getLocalBestValue();
 			}
 		}
-		
+
 		if (error < globalBestValue)
 		{
 			double[][][] weight = new double[evaluateLayers.length][][];

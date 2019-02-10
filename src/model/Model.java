@@ -79,7 +79,7 @@ public class Model
 					((SupportBatchUpdate) optimizer).batchUpdate();
 				}
 			}
-			System.out.println(i + "th mse:" + error / feature.length);
+			// System.out.println(i + "th mse:" + error / feature.length);
 		}
 	}
 

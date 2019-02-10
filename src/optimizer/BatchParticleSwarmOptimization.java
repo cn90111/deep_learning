@@ -118,7 +118,6 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 			layers[i].updateWeight(weight[i]);
 			layers[i].updateBias(bias[i]);
 		}
-
 		resetBatch();
 	}
 

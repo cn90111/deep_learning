@@ -96,7 +96,6 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 		{
 			previousError[i] = previousError[i] * nowError[i];
 		}
-
 		return previousError;
 	}
 

@@ -21,7 +21,7 @@ public class MeanSquaredError extends AbstractLossFunction
 		double[] value = new double[guessValue.length];
 		for (int i = 0; i < guessValue.length; i++)
 		{
-			value[i] = (-2 * trueValue[i] + 2 * guessValue[i]) / guessValue.length;
+			value[i] = (2 * guessValue[i] - 2 * trueValue[i]) / guessValue.length;
 		}
 		return value;
 	}

@@ -59,14 +59,22 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 
 	private void evaluate(Particle particle, double[][] feature, double[][] label)
 	{
-		double error = 0;
+		double lossValue = 0;
 
 		setSolutionWeightToLayers(particle.getNowSolution());
 		for (int i = 0; i < feature.length; i++)
 		{
-			error = error + evaluate(feature[i], label[i]);
+			lossValue = lossValue + evaluate(feature[i], label[i]);
 		}
-		particle.setNowValue(error);
+		particle.setNowValue(lossValue);
+
+		lossValue = 0;
+		setSolutionWeightToLayers(particle.getLocalBestSolution());
+		for (int i = 0; i < feature.length; i++)
+		{
+			lossValue = lossValue + evaluate(feature[i], label[i]);
+		}
+		particle.setLocalBestValue(lossValue);
 	}
 
 	@Override

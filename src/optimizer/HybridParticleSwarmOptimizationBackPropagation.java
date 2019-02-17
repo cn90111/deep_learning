@@ -17,6 +17,9 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private int bpSearchGenerations;
 	private int bpCount;
 
+	private int psoGenerations;
+	private int psoCount;
+
 	private double learningRate;
 	private double originLearningRate;
 	private double learningRateDecayRate;
@@ -35,12 +38,14 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private int nowSleepCount;
 
 	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
-			int bpSearchGenerations, double learningRate, double learningRateDecayRate)
+			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
 	{
 		super(psoParameter, batch);
 		this.mode = condition;
 		this.bpSearchGenerations = bpSearchGenerations;
 		this.bpCount = 0;
+		this.psoGenerations = psoGenerations;
+		this.psoCount = 0;
 		this.originLearningRate = learningRate;
 		this.learningRateDecayRate = learningRateDecayRate;
 		this.switchToBP = false;
@@ -113,6 +118,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 
 	private void psoUpdate()
 	{
+		psoCount = psoCount + 1;
+
 		transit();
 		evaluate(featureArray, labelArray);
 		determine();
@@ -142,9 +149,10 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			previousPsoGlobalValue = globalBestValue;
 		}
 
-		if (psoGlobalSolutionFixCount >= 10)
+		if (psoGlobalSolutionFixCount >= 10 || psoCount >= psoGenerations)
 		{
 			switchToBP = true;
+			psoCount = 0;
 			psoGlobalSolutionFixCount = 0;
 			previousPsoGlobalValue = 0;
 		}

@@ -5,7 +5,7 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.BatchParticleSwarmOptimization;
+import optimizer.HybridParticleSwarmOptimizationBackPropagation;
 
 public class Launch
 {
@@ -14,8 +14,8 @@ public class Launch
 		int run = 5;
 		// epochs setting
 		// https://www.sciencedirect.com/science/article/pii/S0096300306008277
-		int epochs = 500;
-		int hiddenLayerNeurons = 8;
+		int epochs = 2100;
+		int hiddenLayerNeurons = 4;
 		double runAvgTime = 0;
 		double runAvgMse = 0;
 
@@ -178,9 +178,11 @@ public class Launch
 
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
-			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
-					1);
-			model.compile(inputShape, loss, new BatchParticleSwarmOptimization(psoParameter, 4));
+			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
+			// 99999, 1, 0, 10 * dataSize / 4,
+			// 1);
+			// model.compile(inputShape, loss, new
+			// BatchParticleSwarmOptimization(psoParameter, 4));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -188,13 +190,10 @@ public class Launch
 			// BS-IPSO-BP batch size = 20
 			// IPSO-BP need set sleepBatch = 20
 			// BS-IPSO-BP need open resetBatch()
-			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
-			// 99999, 1, 0, 10 * dataSize / 4,
-			// 1);
-			// model.compile(inputShape, loss, new
-			// HybridParticleSwarmOptimizationBackPropagation(psoParameter, 4,
-			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 2000, 0.01,
-			// 0.05));
+			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
+					1);
+			model.compile(inputShape, loss, new HybridParticleSwarmOptimizationBackPropagation(psoParameter, 4,
+					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 2000, 100, 0.01, 0.05));
 
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs);

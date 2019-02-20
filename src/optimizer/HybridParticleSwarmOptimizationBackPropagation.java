@@ -31,12 +31,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private Particle worstParticle;
 	private double worstValue;
 
-	// Let evaluate time of IPSO-BP same as BS-IPSO-BP
-	// IPSO-BP sleepBatch = batch size of BS-IPSO-BP
-	// BS-IPSO sleepBatch = 0
-	private int sleepBatch = 0;
-	private int nowSleepCount;
-
 	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
 			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
 	{
@@ -53,7 +47,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		this.previousPsoGlobalValue = 0;
 		this.worstParticle = null;
 		this.worstValue = 0;
-		this.nowSleepCount = 0;
 	}
 
 	@Override
@@ -81,12 +74,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 
 		if (batchCount >= batchSize)
 		{
-			nowSleepCount = nowSleepCount + 1;
-			if (nowSleepCount >= sleepBatch)
-			{
-				batchUpdate(guessValue, trueValue);
-				nowSleepCount = 0;
-			}
+			batchUpdate(guessValue, trueValue);
 		}
 	}
 

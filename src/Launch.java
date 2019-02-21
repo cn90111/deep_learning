@@ -5,7 +5,7 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.BatchParticleSwarmOptimization;
+import optimizer.HybridParticleSwarmOptimizationBackPropagation;
 
 public class Launch
 {
@@ -14,8 +14,8 @@ public class Launch
 		int run = 5;
 		// epochs setting
 		// https://www.sciencedirect.com/science/article/pii/S0096300306008277
-		int epochs = 267;
-		int hiddenLayerNeurons = 4;
+		int epochs = 324;
+		int hiddenLayerNeurons = 10;
 		double runAvgTime = 0;
 		double runAvgMse = 0;
 
@@ -178,22 +178,21 @@ public class Launch
 
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
-			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
-					1);
-			model.compile(inputShape, loss, new BatchParticleSwarmOptimization(psoParameter, 20));
+			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
+			// 99999, 1, 0, 10 * dataSize / 4,
+			// 1);
+			// model.compile(inputShape, loss, new
+			// BatchParticleSwarmOptimization(psoParameter, 20));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
 			// IPSO-BP batch size = trainFeature.length
 			// BS-IPSO-BP batch size = 20
 			// BS-IPSO-BP need open resetBatch()
-			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
-			// 99999, 1, 0, 10 * dataSize / 4,
-			// 1);
-			// model.compile(inputShape, loss,
-			// new HybridParticleSwarmOptimizationBackPropagation(psoParameter, 20,
-			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 2000, 100,
-			// 0.01, 0.05));
+			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
+					1);
+			model.compile(inputShape, loss, new HybridParticleSwarmOptimizationBackPropagation(psoParameter, 20,
+					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs);

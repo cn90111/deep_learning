@@ -119,6 +119,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			layers[i].updateWeight(weight[i]);
 			layers[i].updateBias(bias[i]);
 		}
+
+		System.out.println("PSO");
 	}
 
 	private void firstCondition()
@@ -227,6 +229,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			switchToBP = false;
 			bpCount = 0;
 		}
+		System.out.println("BP");
 	}
 
 	private double[] activationBackPropagation(double[] nowError, Layer previousLayer)

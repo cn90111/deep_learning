@@ -25,7 +25,7 @@ public class Particle
 	{
 		return nowValue;
 	}
-	
+
 	public void setLocalBestValue(double value)
 	{
 		localBestValue = value;
@@ -94,6 +94,37 @@ public class Particle
 		solution.setWeight(weight);
 		solution.setBias(bias);
 		return solution;
+	}
+
+	public void updateSolution(Solution velocity)
+	{
+		double[][][] weightVelocity = velocity.getWeight();
+		double[][] biasVelocity = velocity.getBias();
+		double[][][] nowWeight = nowSolution.getWeight();
+		double[][] nowBias = nowSolution.getBias();
+
+		for (int i = 0; i < weightVelocity.length; i++)
+		{
+			for (int j = 0; j < weightVelocity[i].length; j++)
+			{
+				for (int k = 0; k < weightVelocity[i][j].length; k++)
+				{
+					nowWeight[i][j][k] = nowWeight[i][j][k] + weightVelocity[i][j][k];
+				}
+			}
+		}
+
+		for (int i = 0; i < biasVelocity.length; i++)
+		{
+			for (int j = 0; j < biasVelocity[i].length; j++)
+			{
+				nowBias[i][j] = nowBias[i][j] + biasVelocity[i][j];
+			}
+		}
+
+		nowSolution.setWeight(nowWeight);
+		nowSolution.setBias(nowBias);
+		setNowSolution(nowSolution);
 	}
 
 	public Solution getNowSolution()

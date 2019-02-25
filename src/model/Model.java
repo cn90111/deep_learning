@@ -70,6 +70,7 @@ public class Model
 			{
 				guessValue = predict(feature[j]);
 				optimizer.update(guessValue, trueValue[j]);
+				System.out.println("error:" + loss.getError(guessValue, trueValue[j]));
 				error = error + loss.getError(guessValue, trueValue[j]);
 			}
 			if (optimizer instanceof SupportBatchUpdate)
@@ -79,7 +80,7 @@ public class Model
 					((SupportBatchUpdate) optimizer).batchUpdate();
 				}
 			}
-			// System.out.println(i + "th mse:" + error / feature.length);
+			System.out.println(i + "th mse:" + error / feature.length);
 		}
 	}
 

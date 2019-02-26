@@ -39,6 +39,8 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 			featureArray[i] = new double[layers[0].getLinkSize()];
 			labelArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
 		}
+
+		resetBatch();
 	}
 
 	protected void evaluate(double[][] feature, double[][] label)

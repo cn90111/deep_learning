@@ -119,8 +119,10 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 
 	private void transit(Particle particle, double[][][] globalBestWeight, double[][] globalBestBias)
 	{
-		double[][][] weightVelocity = particle.getVelocity().getWeight();
-		double[][] biasVelocity = particle.getVelocity().getBias();
+		Solution velocity = particle.getVelocity();
+
+		double[][][] weightVelocity = velocity.getWeight();
+		double[][] biasVelocity = velocity.getBias();
 		double[][][] nowWeight = particle.getNowSolution().getWeight();
 		double[][] nowBias = particle.getNowSolution().getBias();
 		double[][][] localBestWeight = particle.getLocalBestSolution().getWeight();
@@ -155,9 +157,10 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 						+ pso.c2 * globalRandom * (globalBestBias[i][j] - nowBias[i][j]);
 			}
 		}
-
-		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
-		particle.updateSolution(particle.getVelocity());
+		velocity.setWeight(weightVelocity);
+		velocity.setBias(biasVelocity);
+		particle.setVelocity(velocity);
+		particle.updateSolution(velocity);
 	}
 
 	protected void setSolutionWeightToLayers(Solution solution)

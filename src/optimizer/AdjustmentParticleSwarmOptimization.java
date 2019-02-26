@@ -6,7 +6,7 @@ import pso.Particle;
 import pso.Solution;
 
 //PSO w auto Adjustment
-//https://www.sciencedirect.com/sc ience/article/pii/S0096300306008277
+//https://www.sciencedirect.com/science/article/pii/S0096300306008277
 public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 {
 	protected pso.Parameter pso;

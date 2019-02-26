@@ -60,17 +60,28 @@ public class Model
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs)
 	{
+		fit(feature, trueValue, epochs, true);
+	}
+
+	public void fit(double[][] feature, double[][] trueValue, int epochs, boolean shuffle)
+	{
 		double[] guessValue = new double[feature.length];
 		double error;
 		for (int i = 0; i < epochs; i++)
 		{
 			error = 0;
 			optimizer.newEpoch(i);
+
+			// shuffle
+			if (shuffle == true)
+			{
+				shuffle(feature, trueValue);
+			}
+
 			for (int j = 0; j < feature.length; j++)
 			{
 				guessValue = predict(feature[j]);
 				optimizer.update(guessValue, trueValue[j]);
-				System.out.println("error:" + loss.getError(guessValue, trueValue[j]));
 				error = error + loss.getError(guessValue, trueValue[j]);
 			}
 			if (optimizer instanceof SupportBatchUpdate)
@@ -80,7 +91,6 @@ public class Model
 					((SupportBatchUpdate) optimizer).batchUpdate();
 				}
 			}
-			System.out.println(i + "th mse:" + error / feature.length);
 		}
 	}
 
@@ -112,5 +122,22 @@ public class Model
 			bias[i] = layerArray[i].getBias();
 		}
 		return bias;
+	}
+
+	private void shuffle(double[][] feature, double[][] trueValue)
+	{
+		double[] temp;
+		int randomNumber;
+		for (int i = 0; i < trueValue.length; i++)
+		{
+			randomNumber = (int) (Math.random() * trueValue.length);
+			temp = feature[i];
+			feature[i] = feature[randomNumber];
+			feature[randomNumber] = temp;
+			temp = trueValue[i];
+			trueValue[i] = trueValue[randomNumber];
+			trueValue[randomNumber] = temp;
+		}
+
 	}
 }

@@ -135,8 +135,8 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 			{
 				for (int k = 0; k < weightVelocity[i][j].length; k++)
 				{
-					localRandom = (Math.random() * 2) - 1; // 1 ~ -1
-					globalRandom = (Math.random() * 2) - 1; // 1 ~ -1
+					localRandom = Math.random(); // 1 ~ 0
+					globalRandom = Math.random(); // 1 ~ 0
 					weightVelocity[i][j][k] = w * weightVelocity[i][j][k]
 							+ pso.c1 * localRandom * (localBestWeight[i][j][k] - nowWeight[i][j][k])
 							+ pso.c2 * globalRandom * (globalBestWeight[i][j][k] - nowWeight[i][j][k]);
@@ -148,8 +148,8 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 		{
 			for (int j = 0; j < biasVelocity[i].length; j++)
 			{
-				localRandom = (Math.random() * 2) - 1; // 1 ~ -1
-				globalRandom = (Math.random() * 2) - 1; // 1 ~ -1
+				localRandom = Math.random(); // 1 ~ 0
+				globalRandom = Math.random(); // 1 ~ 0
 				biasVelocity[i][j] = w * biasVelocity[i][j]
 						+ pso.c1 * localRandom * (localBestBias[i][j] - nowBias[i][j])
 						+ pso.c2 * globalRandom * (globalBestBias[i][j] - nowBias[i][j]);

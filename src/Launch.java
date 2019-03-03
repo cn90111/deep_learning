@@ -15,7 +15,7 @@ public class Launch
 		// epochs setting
 		// https://www.sciencedirect.com/science/article/pii/S0096300306008277
 		int epochs = 324;
-		int hiddenLayerNeurons = 4;
+		int hiddenLayerNeurons = 30;
 		double runAvgTime = 0;
 		double runAvgMse = 0;
 

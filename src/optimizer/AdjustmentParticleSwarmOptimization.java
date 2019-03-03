@@ -6,7 +6,7 @@ import pso.Particle;
 import pso.Solution;
 
 //PSO w auto Adjustment
-//https://www.sciencedirect.com/sc ience/article/pii/S0096300306008277
+//https://www.sciencedirect.com/science/article/pii/S0096300306008277
 public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 {
 	protected pso.Parameter pso;
@@ -140,7 +140,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 					weightVelocity[i][j][k] = w * weightVelocity[i][j][k]
 							+ pso.c1 * localRandom * (localBestWeight[i][j][k] - nowWeight[i][j][k])
 							+ pso.c2 * globalRandom * (globalBestWeight[i][j][k] - nowWeight[i][j][k]);
-					nowWeight[i][j][k] = nowWeight[i][j][k] + weightVelocity[i][j][k];
 				}
 			}
 		}
@@ -154,12 +153,10 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 				biasVelocity[i][j] = w * biasVelocity[i][j]
 						+ pso.c1 * localRandom * (localBestBias[i][j] - nowBias[i][j])
 						+ pso.c2 * globalRandom * (globalBestBias[i][j] - nowBias[i][j]);
-				nowBias[i][j] = nowBias[i][j] + biasVelocity[i][j];
 			}
 		}
-
 		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
-		particle.setNowSolution(new Solution(nowWeight, nowBias));
+		particle.updateSolution(particle.getVelocity());
 	}
 
 	protected void setSolutionWeightToLayers(Solution solution)

@@ -3,6 +3,7 @@ package optimizer;
 import activation.AbstractActivation;
 import activation.Differentiable;
 import layer.Layer;
+import loss.AbstractLossFunction;
 import pso.Particle;
 import pso.Solution;
 
@@ -31,6 +32,9 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private Particle worstParticle;
 	private double worstValue;
 
+	private double[][] guessArray;
+	private double[][] sumErrorValue;
+
 	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
 			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
 	{
@@ -47,6 +51,23 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		this.previousPsoGlobalValue = 0;
 		this.worstParticle = null;
 		this.worstValue = 0;
+		this.guessArray = new double[batchSize][];
+	}
+
+	@Override
+	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
+	{
+		this.sumErrorValue = new double[layers.length][];
+
+		for (int i = 0; i < layers.length; i++)
+		{
+			sumErrorValue[i] = new double[layers[i].getNeurons().length];
+		}
+		for (int i = 0; i < batchSize; i++)
+		{
+			guessArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
+		}
+		super.setConfiguration(layers, lossFunction);
 	}
 
 	@Override
@@ -68,17 +89,19 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 
 			saveValueToArray(featureArray, feature, batchCount);
 			saveValueToArray(labelArray, trueValue, batchCount);
+			saveValueToArray(guessArray, guessValue, batchCount);
 
 			batchCount = batchCount + 1;
 		}
 
 		if (batchCount >= batchSize)
 		{
-			batchUpdate(guessValue, trueValue);
+			batchUpdate();
 		}
 	}
 
-	public void batchUpdate(double[] guessValue, double[] trueValue)
+	@Override
+	public void batchUpdate()
 	{
 		if (switchToBP == false)
 		{
@@ -95,10 +118,12 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 				default:
 					throw new UnsupportedOperationException("PSO-BP only two condition");
 			}
+			// System.out.println("PSO");
 		}
 		else
 		{
-			bpUpdate(guessValue, trueValue);
+			bpUpdate();
+			// System.out.println("BP");
 		}
 		// BS-IPSO-BP open, IPSO-BP close
 		resetBatch();
@@ -107,6 +132,10 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private void psoUpdate()
 	{
 		psoCount = psoCount + 1;
+
+		// BS-IPSO-BP open, IPSO-BP close
+		evaluate(featureArray, labelArray);
+		determine();
 
 		transit();
 		evaluate(featureArray, labelArray);
@@ -151,7 +180,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		switchToBP = true;
 	}
 
-	private void bpUpdate(double[] guessValue, double[] trueValue)
+	private void bpUpdate()
 	{
 		double[] previousError;
 		double[] nowError;
@@ -161,12 +190,24 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		worstValue = 0;
 
 		setSolutionWeightToLayers(globalBestSolution);
-		nowError = lossFunction.toDifferentiate(guessValue, trueValue);
+		for (int i = 0; i < guessArray.length; i++)
+		{
+			nowError = lossFunction.toDifferentiate(guessArray[i], labelArray[i]);
+			for (int j = evaluateLayers.length - 1; j >= 0; j--)
+			{
+				previousError = activationBackPropagation(nowError, evaluateLayers[j]);
+				nowError = calculateError(previousError, evaluateLayers[j].getWeight());
+
+				for (int k = 0; k < previousError.length; k++)
+				{
+					sumErrorValue[j][k] = sumErrorValue[j][k] + previousError[k];
+				}
+			}
+		}
+
 		for (int i = evaluateLayers.length - 1; i >= 0; i--)
 		{
-			previousError = activationBackPropagation(nowError, evaluateLayers[i]);
-			nowError = calculateError(previousError, evaluateLayers[i].getWeight());
-			update(evaluateLayers[i], previousError, evaluateLayers[i].getInput());
+			update(evaluateLayers[i], sumErrorValue[i], evaluateLayers[i].getInput());
 		}
 
 		for (int i = 0; i < featureArray.length; i++)
@@ -195,7 +236,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			}
 
 			globalBestValue = error;
-			globalBestSolution = new Solution(weight, bias);
+			globalBestSolution.setWeight(weight);
+			globalBestSolution.setBias(bias);
 
 			for (int i = 0; i < layers.length; i++)
 			{
@@ -285,5 +327,27 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	public void newEpoch(int currentEpoch)
 	{
 		learningRate = originLearningRate * Math.exp(-1 * learningRateDecayRate * currentEpoch);
+	}
+
+	@Override
+	public void resetBatch()
+	{
+		super.resetBatch();
+
+		for (int i = 0; i < sumErrorValue.length; i++)
+		{
+			for (int j = 0; j < sumErrorValue[i].length; j++)
+			{
+				sumErrorValue[i][j] = 0;
+			}
+		}
+
+		for (int i = 0; i < guessArray.length; i++)
+		{
+			for (int j = 0; j < guessArray[i].length; j++)
+			{
+				guessArray[i][j] = 0;
+			}
+		}
 	}
 }

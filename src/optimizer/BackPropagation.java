@@ -53,7 +53,7 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 	}
 
 	@Override
-	public void update(double guessValue[], double trueValue[])
+	public void update(double[] guessValue, double[] trueValue)
 	{
 		double[] previousError;
 		double[] nowError;

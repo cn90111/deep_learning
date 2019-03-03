@@ -15,7 +15,7 @@ public class Launch
 		// epochs setting
 		// https://www.sciencedirect.com/science/article/pii/S0096300306008277
 		int epochs = 324;
-		int hiddenLayerNeurons = 30;
+		int hiddenLayerNeurons = 4;
 		double runAvgTime = 0;
 		double runAvgMse = 0;
 
@@ -181,8 +181,7 @@ public class Launch
 			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
 			// 99999, 1, 0, 10 * dataSize / 4,
 			// 1);
-			// model.compile(inputShape, loss, new
-			// BatchParticleSwarmOptimization(psoParameter, 20));
+			// model.compile(inputShape, loss, new BatchParticleSwarmOptimization(psoParameter, 20));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -195,7 +194,7 @@ public class Launch
 					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
 			timeStart = System.currentTimeMillis();
-			model.fit(trainFeature, trainLabel, epochs);
+			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
 
 			for (int j = 0; j < testFeature.length; j++)

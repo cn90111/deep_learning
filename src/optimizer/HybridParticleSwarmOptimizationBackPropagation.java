@@ -57,8 +57,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	@Override
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
-		super.setConfiguration(layers, lossFunction);
-
 		this.sumErrorValue = new double[layers.length][];
 
 		for (int i = 0; i < layers.length; i++)
@@ -69,8 +67,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		{
 			guessArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
 		}
-
-		resetBatch();
+		super.setConfiguration(layers, lossFunction);
 	}
 
 	@Override
@@ -121,10 +118,12 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 				default:
 					throw new UnsupportedOperationException("PSO-BP only two condition");
 			}
+			// System.out.println("PSO");
 		}
 		else
 		{
 			bpUpdate();
+			// System.out.println("BP");
 		}
 		// BS-IPSO-BP open, IPSO-BP close
 		resetBatch();
@@ -210,7 +209,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		{
 			update(evaluateLayers[i], sumErrorValue[i], evaluateLayers[i].getInput());
 		}
-		
+
 		for (int i = 0; i < featureArray.length; i++)
 		{
 			error = error + evaluate(featureArray[i], labelArray[i]);
@@ -237,7 +236,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			}
 
 			globalBestValue = error;
-			globalBestSolution = new Solution(weight, bias);
+			globalBestSolution.setWeight(weight);
+			globalBestSolution.setBias(bias);
 
 			for (int i = 0; i < layers.length; i++)
 			{

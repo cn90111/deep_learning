@@ -12,7 +12,10 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 	private double learningRate;
 	private int batchSize;
 	private int batchCount;
-	private double[][] sumErrorValue;
+	// layer neurons weight
+	private double[][][] weightDeltaArray;
+	// layer bias
+	private double[][] biasDeltaArray;
 	public double updateCount;
 
 	public BackPropagation(double learningRate)
@@ -29,11 +32,14 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
 		this.layers = layers;
-		this.sumErrorValue = new double[layers.length][];
 		this.lossFunction = lossFunction;
+		this.weightDeltaArray = new double[layers.length][][];
+		this.biasDeltaArray = new double[layers.length][];
+
 		for (int i = 0; i < layers.length; i++)
 		{
-			sumErrorValue[i] = new double[layers[i].getNeurons().length];
+			weightDeltaArray[i] = layers[i].getWeight();
+			biasDeltaArray[i] = layers[i].getBias();
 		}
 		resetBatch();
 	}
@@ -44,12 +50,19 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 		batchCount = 0;
 		for (int i = 0; i < layers.length; i++)
 		{
-			for (int j = 0; j < sumErrorValue[i].length; j++)
+			for (int j = 0; j < weightDeltaArray[i].length; j++)
 			{
-				sumErrorValue[i][j] = 0;
+				for (int k = 0; k < weightDeltaArray[i][j].length; k++)
+				{
+					weightDeltaArray[i][j][k] = 0;
+				}
+			}
+
+			for (int j = 0; j < biasDeltaArray[i].length; j++)
+			{
+				biasDeltaArray[i][j] = 0;
 			}
 		}
-
 	}
 
 	@Override
@@ -65,11 +78,7 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 		{
 			previousError = activationBackPropagation(nowError, layers[i]);
 			nowError = calculateError(previousError, layers[i].getWeight());
-
-			for (int j = 0; j < previousError.length; j++)
-			{
-				sumErrorValue[i][j] = sumErrorValue[i][j] + previousError[j];
-			}
+			calculateDeltaValue(layers[i], previousError, layers[i].getInput(), i);
 		}
 
 		if (batchCount >= batchSize)
@@ -113,27 +122,46 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 		return errorValue;
 	}
 
-	@Override
-	public void batchUpdate()
+	private void calculateDeltaValue(Layer layer, double[] error, double[] previousDataOutput, int nowLayer)
 	{
-		for (int i = layers.length - 1; i >= 0; i--)
-		{
-			update(layers[i], sumErrorValue[i], layers[i].getInput());
-		}
-		resetBatch();
-	}
-
-	private void update(Layer layer, double[] error, double[] previousDataOutput)
-	{
-		double[][] weight = layer.getWeight();
-		double[] bias = layer.getBias();
 		for (int i = 0; i < error.length; i++)
 		{
 			for (int j = 0; j < previousDataOutput.length; j++)
 			{
-				weight[i][j] = weight[i][j] - learningRate * error[i] * previousDataOutput[j];
+				weightDeltaArray[nowLayer][i][j] = weightDeltaArray[nowLayer][i][j]
+						+ learningRate * error[i] * previousDataOutput[j];
 			}
-			bias[i] = bias[i] - learningRate * error[i];
+			biasDeltaArray[nowLayer][i] = biasDeltaArray[nowLayer][i] + learningRate * error[i];
+		}
+	}
+
+	@Override
+	public void batchUpdate()
+	{
+		for (int i = 0; i < layers.length; i++)
+		{
+			update(layers[i], i);
+		}
+		resetBatch();
+	}
+
+	private void update(Layer layer, int nowLayer)
+	{
+		double[][] weight = layer.getWeight();
+		double[] bias = layer.getBias();
+		for (int i = 0; i < weightDeltaArray[nowLayer].length; i++)
+		{
+			for (int j = 0; j < weightDeltaArray[nowLayer][i].length; j++)
+			{
+				weightDeltaArray[nowLayer][i][j] = weightDeltaArray[nowLayer][i][j] / batchCount;
+				weight[i][j] = weight[i][j] - weightDeltaArray[nowLayer][i][j];
+			}
+		}
+
+		for (int i = 0; i < biasDeltaArray[nowLayer].length; i++)
+		{
+			biasDeltaArray[nowLayer][i] = biasDeltaArray[nowLayer][i] / batchCount;
+			bias[i] = bias[i] - biasDeltaArray[nowLayer][i];
 		}
 		layer.updateWeight(weight);
 		layer.updateBias(bias);

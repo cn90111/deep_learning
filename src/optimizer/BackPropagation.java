@@ -78,7 +78,7 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 		{
 			previousError = activationBackPropagation(nowError, layers[i]);
 			nowError = calculateError(previousError, layers[i].getWeight());
-			calculateDeltaValue(layers[i], previousError, layers[i].getInput(), i);
+			calculateDeltaValue(previousError, layers[i].getInput(), i);
 		}
 
 		if (batchCount >= batchSize)
@@ -122,7 +122,7 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 		return errorValue;
 	}
 
-	private void calculateDeltaValue(Layer layer, double[] error, double[] previousDataOutput, int nowLayer)
+	private void calculateDeltaValue(double[] error, double[] previousDataOutput, int nowLayer)
 	{
 		for (int i = 0; i < error.length; i++)
 		{

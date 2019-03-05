@@ -33,7 +33,11 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private double worstValue;
 
 	private double[][] guessArray;
-	private double[][] sumErrorValue;
+
+	// layer neurons weight
+	private double[][][] weightDeltaArray;
+	// layer bias
+	private double[][] biasDeltaArray;
 
 	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
 			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
@@ -57,11 +61,13 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	@Override
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
-		this.sumErrorValue = new double[layers.length][];
+		this.weightDeltaArray = new double[layers.length][][];
+		this.biasDeltaArray = new double[layers.length][];
 
 		for (int i = 0; i < layers.length; i++)
 		{
-			sumErrorValue[i] = new double[layers[i].getNeurons().length];
+			weightDeltaArray[i] = layers[i].getWeight();
+			biasDeltaArray[i] = layers[i].getBias();
 		}
 		for (int i = 0; i < batchSize; i++)
 		{
@@ -197,17 +203,13 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			{
 				previousError = activationBackPropagation(nowError, evaluateLayers[j]);
 				nowError = calculateError(previousError, evaluateLayers[j].getWeight());
-
-				for (int k = 0; k < previousError.length; k++)
-				{
-					sumErrorValue[j][k] = sumErrorValue[j][k] + previousError[k];
-				}
+				calculateDeltaValue(previousError, evaluateLayers[j].getInput(), j);
 			}
 		}
 
-		for (int i = evaluateLayers.length - 1; i >= 0; i--)
+		for (int i = 0; i < evaluateLayers.length; i++)
 		{
-			update(evaluateLayers[i], sumErrorValue[i], evaluateLayers[i].getInput());
+			update(evaluateLayers[i], i);
 		}
 
 		for (int i = 0; i < featureArray.length; i++)
@@ -307,17 +309,36 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		return errorValue;
 	}
 
-	private void update(Layer layer, double[] error, double[] previousDataOutput)
+	private void calculateDeltaValue(double[] error, double[] previousDataOutput, int nowLayer)
 	{
-		double[][] weight = layer.getWeight();
-		double[] bias = layer.getBias();
 		for (int i = 0; i < error.length; i++)
 		{
 			for (int j = 0; j < previousDataOutput.length; j++)
 			{
-				weight[i][j] = weight[i][j] - learningRate * error[i] * previousDataOutput[j];
+				weightDeltaArray[nowLayer][i][j] = weightDeltaArray[nowLayer][i][j]
+						+ learningRate * error[i] * previousDataOutput[j];
 			}
-			bias[i] = bias[i] - learningRate * error[i];
+			biasDeltaArray[nowLayer][i] = biasDeltaArray[nowLayer][i] + learningRate * error[i];
+		}
+	}
+
+	private void update(Layer layer, int nowLayer)
+	{
+		double[][] weight = layer.getWeight();
+		double[] bias = layer.getBias();
+		for (int i = 0; i < weightDeltaArray[nowLayer].length; i++)
+		{
+			for (int j = 0; j < weightDeltaArray[nowLayer][i].length; j++)
+			{
+				weightDeltaArray[nowLayer][i][j] = weightDeltaArray[nowLayer][i][j] / batchCount;
+				weight[i][j] = weight[i][j] - weightDeltaArray[nowLayer][i][j];
+			}
+		}
+
+		for (int i = 0; i < biasDeltaArray[nowLayer].length; i++)
+		{
+			biasDeltaArray[nowLayer][i] = biasDeltaArray[nowLayer][i] / batchCount;
+			bias[i] = bias[i] - biasDeltaArray[nowLayer][i];
 		}
 		layer.updateWeight(weight);
 		layer.updateBias(bias);
@@ -334,11 +355,19 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	{
 		super.resetBatch();
 
-		for (int i = 0; i < sumErrorValue.length; i++)
+		for (int i = 0; i < layers.length; i++)
 		{
-			for (int j = 0; j < sumErrorValue[i].length; j++)
+			for (int j = 0; j < weightDeltaArray[i].length; j++)
 			{
-				sumErrorValue[i][j] = 0;
+				for (int k = 0; k < weightDeltaArray[i][j].length; k++)
+				{
+					weightDeltaArray[i][j][k] = 0;
+				}
+			}
+
+			for (int j = 0; j < biasDeltaArray[i].length; j++)
+			{
+				biasDeltaArray[i][j] = 0;
 			}
 		}
 

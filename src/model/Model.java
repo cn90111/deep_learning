@@ -65,7 +65,7 @@ public class Model
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs, boolean shuffle)
 	{
-		double[] guessValue = new double[feature.length];
+		double[] guessValue;
 		double error;
 		for (int i = 0; i < epochs; i++)
 		{

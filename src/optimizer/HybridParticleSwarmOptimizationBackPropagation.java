@@ -32,8 +32,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	private Particle worstParticle;
 	private double worstValue;
 
-	private double[][] guessArray;
-
 	// layer neurons weight
 	private double[][][] weightDeltaArray;
 	// layer bias
@@ -68,10 +66,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			weightDeltaArray[i] = layers[i].getWeight();
 			biasDeltaArray[i] = layers[i].getBias();
 		}
-		for (int i = 0; i < batchSize; i++)
-		{
-			guessArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
-		}
 		super.setConfiguration(layers, lossFunction);
 	}
 
@@ -94,7 +88,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 
 			saveValueToArray(featureArray, feature, batchCount);
 			saveValueToArray(labelArray, trueValue, batchCount);
-			saveValueToArray(guessArray, guessValue, batchCount);
 
 			batchCount = batchCount + 1;
 		}
@@ -129,7 +122,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			bpUpdate();
 		}
 		// BS-IPSO-BP open, IPSO-BP close
-//		 resetBatch();
+		// resetBatch();
 	}
 
 	private void psoUpdate()
@@ -187,6 +180,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	{
 		double[] previousError;
 		double[] nowError;
+		double[] guessValue;
 		double error = 0;
 
 		bpCount = bpCount + 1;
@@ -195,8 +189,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		setSolutionWeightToLayers(globalBestSolution);
 		for (int i = 0; i < featureArray.length; i++)
 		{
-			predict(featureArray[i]);
-			nowError = lossFunction.toDifferentiate(guessArray[i], labelArray[i]);
+			guessValue = predict(featureArray[i]);
+			nowError = lossFunction.toDifferentiate(guessValue, labelArray[i]);
 			for (int j = evaluateLayers.length - 1; j >= 0; j--)
 			{
 				previousError = activationBackPropagation(nowError, evaluateLayers[j]);
@@ -366,14 +360,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			for (int j = 0; j < biasDeltaArray[i].length; j++)
 			{
 				biasDeltaArray[i][j] = 0;
-			}
-		}
-
-		for (int i = 0; i < guessArray.length; i++)
-		{
-			for (int j = 0; j < guessArray[i].length; j++)
-			{
-				guessArray[i][j] = 0;
 			}
 		}
 	}

@@ -124,15 +124,13 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 				default:
 					throw new UnsupportedOperationException("PSO-BP only two condition");
 			}
-			// System.out.println("PSO");
 		}
 		else
 		{
 			bpUpdate();
-			// System.out.println("BP");
 		}
 		// BS-IPSO-BP open, IPSO-BP close
-		resetBatch();
+//		 resetBatch();
 	}
 
 	private void psoUpdate()
@@ -140,8 +138,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		psoCount = psoCount + 1;
 
 		// BS-IPSO-BP open, IPSO-BP close
-		evaluate(featureArray, labelArray);
-		determine();
+		// evaluate(featureArray, labelArray);
+		// determine();
 
 		transit();
 		evaluate(featureArray, labelArray);

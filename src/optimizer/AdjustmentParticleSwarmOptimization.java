@@ -182,7 +182,7 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 		return error;
 	}
 
-	private double[] predict(double[] feature)
+	protected double[] predict(double[] feature)
 	{
 		evaluateLayers[0].dataIn(feature);
 		for (int i = 1; i < evaluateLayers.length; i++)

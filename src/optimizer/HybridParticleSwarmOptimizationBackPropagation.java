@@ -55,7 +55,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		this.previousPsoGlobalValue = 0;
 		this.worstParticle = null;
 		this.worstValue = 0;
-		this.guessArray = new double[batchSize][];
 	}
 
 	@Override
@@ -194,8 +193,9 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		worstValue = 0;
 
 		setSolutionWeightToLayers(globalBestSolution);
-		for (int i = 0; i < guessArray.length; i++)
+		for (int i = 0; i < featureArray.length; i++)
 		{
+			predict(featureArray[i]);
 			nowError = lossFunction.toDifferentiate(guessArray[i], labelArray[i]);
 			for (int j = evaluateLayers.length - 1; j >= 0; j--)
 			{

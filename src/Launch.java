@@ -185,7 +185,7 @@ public class Launch
 			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
 			model.add(new Layer(1, new Random(50, -50), new Linear()));
 
-			model.compile(inputShape, loss, new BackPropagation(0.01, 20));
+			model.compile(inputShape, loss, new BackPropagation(0.01, 1));
 
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1

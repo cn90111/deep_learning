@@ -5,7 +5,7 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.HybridParticleSwarmOptimizationBackPropagation;
+import optimizer.BackPropagation;
 
 public class Launch
 {
@@ -73,7 +73,7 @@ public class Launch
 		long timeStart, timeEnd;
 
 		java.util.Random generator = new java.util.Random(0);
-		
+
 		for (int i = 0; i < dataSize; i++)
 		{
 			// ackley
@@ -185,7 +185,7 @@ public class Launch
 			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
 			model.add(new Layer(1, new Random(50, -50), new Linear()));
 
-			// model.compile(inputShape, loss, new BackPropagation(0.01, 1));
+			model.compile(inputShape, loss, new BackPropagation(0.01, 20));
 
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
@@ -196,7 +196,8 @@ public class Launch
 			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
 			// 99999, 1, 0, 10 * dataSize / 4,
 			// 1);
-			// model.compile(inputShape, loss, new BatchParticleSwarmOptimization(psoParameter, 20));
+			// model.compile(inputShape, loss, new
+			// BatchParticleSwarmOptimization(psoParameter, 20));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -206,11 +207,14 @@ public class Launch
 			// BS-IPSO-BP batch size = 20
 			// xor problem
 			// BS-IPSO-BP batch size = 4
-			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
-					1);
-			model.compile(inputShape, loss,
-					new HybridParticleSwarmOptimizationBackPropagation(psoParameter, trainFeature.length,
-							HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
+			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
+			// 99999, 1, 0, 10 * dataSize / 4,
+			// 1);
+			// model.compile(inputShape, loss,
+			// new HybridParticleSwarmOptimizationBackPropagation(psoParameter,
+			// trainFeature.length,
+			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
+			// 0.01, 0.05));
 
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);

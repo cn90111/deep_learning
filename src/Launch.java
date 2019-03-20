@@ -20,7 +20,7 @@ public class Launch
 		// BP = Math.ceil(10000/700) = 15, BS-IPSO = Math.ceil(500/(700/20)) = 15
 		// IPSO-BP = Math.ceil(1700/700)+1 = 4, BS-IPSO-BP = Math.ceil(1700/(700/20)) =
 		// 49
-		int epochs = 4;
+		int epochs = 10;
 		int hiddenLayerNeurons = 4;
 		double runAvgTime = 0;
 		double runAvgMse = 0;
@@ -38,6 +38,8 @@ public class Launch
 
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
+
+		Timer timer;
 
 		// ackley
 		double ackleySum1;
@@ -185,7 +187,7 @@ public class Launch
 			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
 			model.add(new Layer(1, new Random(50, -50), new Linear()));
 
-//			model.compile(inputShape, loss, new BackPropagation(0.01, 1));
+			// model.compile(inputShape, loss, new BackPropagation(0.01, 1));
 
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
@@ -197,7 +199,7 @@ public class Launch
 			// 99999, 1, 0, 10 * dataSize / 4,
 			// 1);
 			// model.compile(inputShape, loss, new
-			// BatchParticleSwarmOptimization(psoParameter, 20));
+			// BatchParticleSwarmOptimization(psoParameter, 70));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -209,14 +211,15 @@ public class Launch
 			// BS-IPSO-BP batch size = 4
 			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
 					1);
-			model.compile(inputShape, loss,
-					new HybridParticleSwarmOptimizationBackPropagation(psoParameter, trainFeature.length,
-							HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
+			model.compile(inputShape, loss, new HybridParticleSwarmOptimizationBackPropagation(psoParameter, 70,
+					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
+			timer = new Timer(model, testFeature, testLabel, loss);
+			timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-
+			timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

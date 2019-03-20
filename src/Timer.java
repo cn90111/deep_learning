@@ -61,7 +61,7 @@ public class Timer extends Thread
 				e1.printStackTrace();
 			}
 
-			System.out.println(timeCount + "s,mse:" + avgLossValue);
+			// System.out.println(timeCount + "s,mse:" + avgLossValue);
 
 			try
 			{

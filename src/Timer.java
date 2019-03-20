@@ -1,3 +1,6 @@
+import java.io.FileWriter;
+import java.io.IOException;
+
 import loss.AbstractLossFunction;
 import model.Model;
 
@@ -10,6 +13,7 @@ public class Timer extends Thread
 	double[][] feature;
 	double[][] label;
 	AbstractLossFunction lossFunction;
+	FileWriter file;
 
 	public Timer(Model model, double[][] feature, double[][] label, AbstractLossFunction lossFunction)
 	{
@@ -23,12 +27,19 @@ public class Timer extends Thread
 	public void run()
 	{
 		double[][] predictLabel = new double[label.length][label[0].length];
-
+		try
+		{
+			file = new FileWriter("result/timeMse.csv", true);
+		}
+		catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
 		while (!stop)
 		{
 			double lossValue = 0;
 			double avgLossValue = 0;
-			
+
 			for (int j = 0; j < feature.length; j++)
 			{
 				predictLabel[j] = model.predict(feature[j]);
@@ -40,6 +51,15 @@ public class Timer extends Thread
 			}
 
 			avgLossValue = avgLossValue / predictLabel.length;
+
+			try
+			{
+				file.write(timeCount + "," + avgLossValue + "\n");
+			}
+			catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
 
 			System.out.println(timeCount + "s,mse:" + avgLossValue);
 
@@ -58,5 +78,15 @@ public class Timer extends Thread
 	public void close()
 	{
 		stop = true;
+
+		try
+		{
+			file.close();
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

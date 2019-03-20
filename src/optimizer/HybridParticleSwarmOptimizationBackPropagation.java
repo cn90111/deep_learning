@@ -122,7 +122,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			bpUpdate();
 		}
 		// BS-IPSO-BP open, IPSO-BP close
-		// resetBatch();
+		resetBatch();
 	}
 
 	private void psoUpdate()
@@ -130,8 +130,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		psoCount = psoCount + 1;
 
 		// BS-IPSO-BP open, IPSO-BP close
-		// evaluate(featureArray, labelArray);
-		// determine();
+		evaluate(featureArray, labelArray);
+		determine();
 
 		transit();
 		evaluate(featureArray, labelArray);

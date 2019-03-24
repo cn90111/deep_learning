@@ -104,14 +104,6 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 		}
 	}
 
-	protected void saveValueToArray(double[][] array, double[] value, int index)
-	{
-		for (int i = 0; i < value.length; i++)
-		{
-			array[index][i] = value[i];
-		}
-	}
-
 	@Override
 	public void batchUpdate()
 	{

@@ -211,4 +211,12 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 			}
 		}
 	}
+
+	protected void saveValueToArray(double[][] array, double[] value, int index)
+	{
+		for (int i = 0; i < value.length; i++)
+		{
+			array[index][i] = value[i];
+		}
+	}
 }

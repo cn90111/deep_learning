@@ -211,15 +211,16 @@ public class Launch
 			// BS-IPSO-BP batch size = 4
 			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
 					1);
-			model.compile(inputShape, loss, new HybridParticleSwarmOptimizationBackPropagation(psoParameter, 70,
-					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
+			model.compile(inputShape, loss,
+					new HybridParticleSwarmOptimizationBackPropagation(psoParameter, trainFeature.length,
+							HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
-			timer = new Timer(model, testFeature, testLabel, loss);
-			timer.start();
+//			timer = new Timer(model, testFeature, testLabel, loss);
+//			timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-			timer.close();
+//			timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

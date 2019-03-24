@@ -9,7 +9,7 @@ import pso.Solution;
 
 // PSO-BP
 // https://www.sciencedirect.com/science/article/pii/S0096300306008277
-public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticleSwarmOptimization
+public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentParticleSwarmOptimization
 {
 	public static final int FIRST_CONDITION = 0;
 	public static final int SECOND_CONDITION = 1;
@@ -37,10 +37,17 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 	// layer bias
 	private double[][] biasDeltaArray;
 
-	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
+	protected int dataSize;
+	protected int dataCount;
+	protected double[][] featureArray;
+	protected double[][] labelArray;
+
+	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int dataSize, int condition,
 			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
 	{
-		super(psoParameter, batch);
+		super(psoParameter);
+		this.dataSize = dataSize;
+		this.dataCount = 0;
 		this.mode = condition;
 		this.bpSearchGenerations = bpSearchGenerations;
 		this.bpCount = 0;
@@ -53,11 +60,16 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		this.previousPsoGlobalValue = 0;
 		this.worstParticle = null;
 		this.worstValue = 0;
+
+		featureArray = new double[dataSize][];
+		labelArray = new double[dataSize][];
 	}
 
 	@Override
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
+		super.setConfiguration(layers, lossFunction);
+
 		this.weightDeltaArray = new double[layers.length][][];
 		this.biasDeltaArray = new double[layers.length][];
 
@@ -66,7 +78,12 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			weightDeltaArray[i] = layers[i].getWeight();
 			biasDeltaArray[i] = layers[i].getBias();
 		}
-		super.setConfiguration(layers, lossFunction);
+
+		for (int i = 0; i < dataSize; i++)
+		{
+			featureArray[i] = new double[layers[0].getLinkSize()];
+			labelArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
+		}
 	}
 
 	@Override
@@ -82,24 +99,23 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			w = (pso.maxW - pso.linearEndW) * Math.exp((pso.linearEndCount - updateCount) / pso.nonlinearlyWeight);
 		}
 
-		if (batchCount < batchSize)
+		if (dataCount < dataSize)
 		{
 			double[] feature = layers[0].getInput();
 
-			saveValueToArray(featureArray, feature, batchCount);
-			saveValueToArray(labelArray, trueValue, batchCount);
+			saveValueToArray(featureArray, feature, dataCount);
+			saveValueToArray(labelArray, trueValue, dataCount);
 
-			batchCount = batchCount + 1;
+			dataCount = dataCount + 1;
 		}
 
-		if (batchCount >= batchSize)
+		if (dataCount >= dataSize)
 		{
-			batchUpdate();
+			update();
 		}
 	}
 
-	@Override
-	public void batchUpdate()
+	public void update()
 	{
 		if (switchToBP == false)
 		{
@@ -121,18 +137,11 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		{
 			bpUpdate();
 		}
-		// BS-IPSO-BP open, IPSO-BP close
-		resetBatch();
+//		reset();
 	}
 
-	private void psoUpdate()
+	protected void psoUpdate()
 	{
-		psoCount = psoCount + 1;
-
-		// BS-IPSO-BP open, IPSO-BP close
-		evaluate(featureArray, labelArray);
-		determine();
-
 		transit();
 		evaluate(featureArray, labelArray);
 		determine();
@@ -144,6 +153,26 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 			layers[i].updateWeight(weight[i]);
 			layers[i].updateBias(bias[i]);
 		}
+		psoCount = psoCount + 1;
+	}
+
+	protected void evaluate(double[][] feature, double[][] label)
+	{
+		for (int i = 0; i < particle.length; i++)
+		{
+			evaluate(particle[i], feature, label);
+		}
+	}
+
+	private void evaluate(Particle particle, double[][] feature, double[][] label)
+	{
+		double lossValue = 0;
+		setSolutionWeightToLayers(particle.getNowSolution());
+		for (int i = 0; i < feature.length; i++)
+		{
+			lossValue = lossValue + evaluate(feature[i], label[i]);
+		}
+		particle.setNowValue(lossValue);
 	}
 
 	private void firstCondition()
@@ -322,14 +351,14 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		{
 			for (int j = 0; j < weightDeltaArray[nowLayer][i].length; j++)
 			{
-				weightDeltaArray[nowLayer][i][j] = weightDeltaArray[nowLayer][i][j] / batchCount;
+				weightDeltaArray[nowLayer][i][j] = weightDeltaArray[nowLayer][i][j] / dataCount;
 				weight[i][j] = weight[i][j] - weightDeltaArray[nowLayer][i][j];
 			}
 		}
 
 		for (int i = 0; i < biasDeltaArray[nowLayer].length; i++)
 		{
-			biasDeltaArray[nowLayer][i] = biasDeltaArray[nowLayer][i] / batchCount;
+			biasDeltaArray[nowLayer][i] = biasDeltaArray[nowLayer][i] / dataCount;
 			bias[i] = bias[i] - biasDeltaArray[nowLayer][i];
 		}
 		layer.updateWeight(weight);
@@ -342,11 +371,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends BatchParticl
 		learningRate = originLearningRate * Math.exp(-1 * learningRateDecayRate * currentEpoch);
 	}
 
-	@Override
-	public void resetBatch()
+	public void reset()
 	{
-		super.resetBatch();
-
 		for (int i = 0; i < layers.length; i++)
 		{
 			for (int j = 0; j < weightDeltaArray[i].length; j++)

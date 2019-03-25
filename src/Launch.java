@@ -5,6 +5,7 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
+import optimizer.BatchSizeParticleSwarmOptimizationBackPropagation;
 import optimizer.HybridParticleSwarmOptimizationBackPropagation;
 
 public class Launch
@@ -96,8 +97,8 @@ public class Launch
 			// label[i][0] = Math.sin(2 * feature[i][0]) * Math.exp(-1 * feature[i][0]);
 
 			// ackley function, inputShape = 2
-			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1 / inputShape) * ackleySum1))
-					- Math.exp((1 / inputShape) * ackleySum2) + 20 + Math.exp(1);
+			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) * ackleySum1))
+					- Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
 
 			// xor problem, inputShape = 3
 			// label[i][0] = 0;
@@ -204,22 +205,32 @@ public class Launch
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
 			// IPSO-BP batch size = trainFeature.length
-			// BS-IPSO-BP need open resetBatch()
+			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
+			// 99999, 1, 0, 10 * dataSize / 4,
+			// 1);
+			// model.compile(inputShape, loss,
+			// new HybridParticleSwarmOptimizationBackPropagation(psoParameter,
+			// trainFeature.length,
+			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
+			// 0.01, 0.05));
+
+			// velocity : 1 ~ 0
+			// solution : 1 ~ 0
 			// General problem
-			// BS-IPSO-BP batch size = 20
+			// batch size = trainFeature.length/10
 			// xor problem
-			// BS-IPSO-BP batch size = 4
+			// batch size = 4
 			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
 					1);
-			model.compile(inputShape, loss, new HybridParticleSwarmOptimizationBackPropagation(psoParameter, 70,
+			model.compile(inputShape, loss, new BatchSizeParticleSwarmOptimizationBackPropagation(psoParameter, 70,
 					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
-			timer = new Timer(model, testFeature, testLabel, loss);
-			timer.start();
+			// timer = new Timer(model, testFeature, testLabel, loss);
+			// timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-			timer.close();
+			// timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

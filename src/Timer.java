@@ -14,13 +14,15 @@ public class Timer extends Thread
 	double[][] label;
 	AbstractLossFunction lossFunction;
 	FileWriter file;
+	String fileName;
 
-	public Timer(Model model, double[][] feature, double[][] label, AbstractLossFunction lossFunction)
+	public Timer(Model model, double[][] feature, double[][] label, AbstractLossFunction lossFunction, String fileName)
 	{
 		this.model = model;
 		this.feature = feature;
 		this.label = label;
 		this.lossFunction = lossFunction;
+		this.fileName = fileName;
 	}
 
 	@Override
@@ -29,7 +31,7 @@ public class Timer extends Thread
 		double[][] predictLabel = new double[label.length][label[0].length];
 		try
 		{
-			file = new FileWriter("result/timeMse.csv", true);
+			file = new FileWriter("result/timer/" + fileName + ".csv", true);
 		}
 		catch (IOException e1)
 		{

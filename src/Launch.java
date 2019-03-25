@@ -37,6 +37,8 @@ public class Launch
 		int inputShape = 2;
 		int outputShape = 1;
 
+		String timeFileName = "BSIPSOBP10ep4";
+
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
 
@@ -225,12 +227,12 @@ public class Launch
 			model.compile(inputShape, loss, new BatchSizeParticleSwarmOptimizationBackPropagation(psoParameter, 70,
 					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
-			// timer = new Timer(model, testFeature, testLabel, loss);
-			// timer.start();
+			timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
+			timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-			// timer.close();
+			timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

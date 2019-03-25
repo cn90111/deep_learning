@@ -84,6 +84,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 			featureArray[i] = new double[layers[0].getLinkSize()];
 			labelArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
 		}
+
+		reset();
 	}
 
 	@Override
@@ -137,7 +139,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 		{
 			bpUpdate();
 		}
-//		reset();
+		reset();
 	}
 
 	protected void psoUpdate()
@@ -158,6 +160,14 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 
 	protected void evaluate(double[][] feature, double[][] label)
 	{
+		if (globalBestValue == 0)
+		{
+			setSolutionWeightToLayers(globalBestSolution);
+			for (int i = 0; i < feature.length; i++)
+			{
+				globalBestValue = globalBestValue + evaluate(feature[i], label[i]);
+			}
+		}
 		for (int i = 0; i < particle.length; i++)
 		{
 			evaluate(particle[i], feature, label);

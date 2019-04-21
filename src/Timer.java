@@ -31,7 +31,7 @@ public class Timer extends Thread
 		double[][] predictLabel = new double[label.length][label[0].length];
 		try
 		{
-			file = new FileWriter("result/timer/" + fileName + ".csv", true);
+			file = new FileWriter("../result/timer/" + fileName + ".csv", true);
 		}
 		catch (IOException e1)
 		{

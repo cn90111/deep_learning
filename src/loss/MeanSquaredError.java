@@ -8,7 +8,7 @@ public class MeanSquaredError extends AbstractLossFunction
 		error = 0;
 		for (int i = 0; i < guessValue.length; i++)
 		{
-			error = error + Math.pow(guessValue[i] - trueValue[i], 2);
+			error = error + Math.pow(trueValue[i] - guessValue[i], 2);
 		}
 		error = error / guessValue.length;
 
@@ -21,7 +21,7 @@ public class MeanSquaredError extends AbstractLossFunction
 		double[] value = new double[guessValue.length];
 		for (int i = 0; i < guessValue.length; i++)
 		{
-			value[i] = (2 * guessValue[i] - 2 * trueValue[i]) / guessValue.length;
+			value[i] = 2 * (trueValue[i] - guessValue[i]) * -1 / guessValue.length;
 		}
 		return value;
 	}

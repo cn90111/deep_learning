@@ -1,8 +1,11 @@
 package model;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
@@ -48,7 +51,12 @@ public class Model
 	{
 		this.loss = loss;
 		this.optimizer = optimizer;
+		neuronLink(inputFeatureSize);
+		optimizer.setConfiguration(layerArray, loss);
+	}
 
+	private void neuronLink(int inputFeatureSize)
+	{
 		layerArray = layers.toArray(new Layer[0]);
 
 		layerArray[0].setLinkSize(inputFeatureSize);
@@ -56,8 +64,6 @@ public class Model
 		{
 			layerArray[i].setLinkSize(layerArray[i - 1].getNeuronSize());
 		}
-
-		optimizer.setConfiguration(layerArray, loss);
 	}
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs)
@@ -189,6 +195,37 @@ public class Model
 			fw.flush();
 		}
 		fw.close();
+	}
+
+	public static Model load(String filePath) throws FileNotFoundException
+	{
+		Model temp = new Model();
+		Scanner weightFile = new Scanner(new File(filePath));
+		String line;
+		String[] tokens;
+		String mode;
+
+		while (weightFile.hasNextLine())
+		{
+			line = weightFile.nextLine();
+			tokens = line.split("[,:\\s\\[\\]]");
+			for (String token : tokens)
+			{
+				System.out.println(token);
+				switch (token)
+				{
+					case "layer":
+						mode = "add layer";
+						break;
+					case "activation":
+
+						break;
+				}
+			}
+		}
+
+		weightFile.close();
+		return temp;
 	}
 
 	private void shuffle(double[][] feature, double[][] trueValue)

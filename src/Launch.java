@@ -1,4 +1,4 @@
-import java.io.IOException;
+import java.io.FileNotFoundException;
 
 import activation.Linear;
 import activation.Relu;
@@ -246,10 +246,11 @@ public class Launch
 
 			try
 			{
-				model.save("test.txt");
+				Model.load("test.txt");
 			}
-			catch (IOException e)
+			catch (FileNotFoundException e)
 			{
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			// velocity : +- velocityLimit / 10

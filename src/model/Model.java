@@ -68,7 +68,7 @@ public class Model
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs)
 	{
-		if (layerArray == null)
+		if (layerArray == null || optimizer == null || loss == null)
 		{
 			System.out.println("need compile first.");
 		}

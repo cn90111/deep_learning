@@ -1,5 +1,7 @@
 package model;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import layer.Layer;
@@ -26,11 +28,11 @@ public class Model
 	public void summary()
 	{
 		double[][] weight;
-		for (int i = 0; i < layers.size(); i++)
+		for (int i = 0; i < layerArray.length; i++)
 		{
 			System.out.println("layer : " + i);
-			System.out.println("neuron size : " + layers.get(i).getNeuronSize());
-			weight = layers.get(i).getWeight();
+			System.out.println("neuron size : " + layerArray[i].getNeuronSize());
+			weight = layerArray[i].getWeight();
 			for (int j = 0; j < weight.length; i++)
 			{
 				for (int k = 0; k < weight[0].length; k++)
@@ -60,7 +62,14 @@ public class Model
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs)
 	{
-		fit(feature, trueValue, epochs, true);
+		if (layerArray == null)
+		{
+			System.out.println("need compile first.");
+		}
+		else
+		{
+			fit(feature, trueValue, epochs, true);
+		}
 	}
 
 	public void fit(double[][] feature, double[][] trueValue, int epochs, boolean shuffle)
@@ -98,6 +107,12 @@ public class Model
 
 	public double[] predict(double[] feature)
 	{
+		if (layerArray == null)
+		{
+			System.out.println("need compile first.");
+			return null;
+		}
+
 		layerArray[0].dataIn(feature);
 		for (int i = 1; i < layerArray.length; i++)
 		{
@@ -108,7 +123,7 @@ public class Model
 
 	public double[][][] getWeight()
 	{
-		double[][][] weight = new double[layers.size()][][];
+		double[][][] weight = new double[layerArray.length][][];
 		for (int i = 0; i < layerArray.length; i++)
 		{
 			weight[i] = layerArray[i].getWeight();
@@ -118,12 +133,17 @@ public class Model
 
 	public double[][] getBias()
 	{
-		double[][] bias = new double[layers.size()][];
+		double[][] bias = new double[layerArray.length][];
 		for (int i = 0; i < layerArray.length; i++)
 		{
 			bias[i] = layerArray[i].getBias();
 		}
 		return bias;
+	}
+
+	public void save(String filePath) throws IOException
+	{
+		FileWriter fw = new FileWriter(filePath);
 	}
 
 	private void shuffle(double[][] feature, double[][] trueValue)

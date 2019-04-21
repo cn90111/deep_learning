@@ -7,4 +7,9 @@ public abstract class AbstractActivation
 	}
 
 	public abstract double[] calculate(double[] weight);
+
+	public String toString()
+	{
+		return this.getClass().getSimpleName();
+	}
 }

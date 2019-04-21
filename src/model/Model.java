@@ -144,6 +144,51 @@ public class Model
 	public void save(String filePath) throws IOException
 	{
 		FileWriter fw = new FileWriter(filePath);
+
+		for (int i = 0; i < layerArray.length; i++)
+		{
+			fw.write("layer:" + i + ", ");
+			fw.write("activation:" + layerArray[i].getActivation().toString() + ", ");
+			fw.write("input size:" + layerArray[i].getLinkSize() + ", ");
+			fw.write("output size:" + layerArray[i].getNeuronSize() + "\n");
+			fw.flush();
+		}
+
+		for (int i = 0; i < layerArray.length; i++)
+		{
+			double[][] weight = layerArray[i].getWeight();
+			double[] bias = layerArray[i].getBias();
+
+			fw.write("weight[");
+			for (int j = 0; j < weight.length; j++)
+			{
+				for (int k = 0; k < weight[j].length; k++)
+				{
+					fw.write(String.valueOf(weight[j][k]) + ", ");
+
+					if ((j * weight[j].length + (k + 1)) % 5 == 0)
+					{
+						fw.write("\n");
+					}
+				}
+			}
+			fw.write("]" + "\n");
+			fw.flush();
+
+			fw.write("bias[");
+			for (int j = 0; j < bias.length; j++)
+			{
+				fw.write(String.valueOf(bias[j]) + ", ");
+
+				if ((j + 1) % 5 == 0)
+				{
+					fw.write("\n");
+				}
+			}
+			fw.write("]" + "\n");
+			fw.flush();
+		}
+		fw.close();
 	}
 
 	private void shuffle(double[][] feature, double[][] trueValue)

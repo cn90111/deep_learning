@@ -1,5 +1,3 @@
-import java.io.FileNotFoundException;
-
 import activation.Linear;
 import activation.Relu;
 import initializer.Random;
@@ -8,6 +6,8 @@ import loss.AbstractLossFunction;
 import loss.CrossEntropy;
 import model.Model;
 import optimizer.BackPropagation;
+
+
 
 public class Launch
 {
@@ -248,7 +248,7 @@ public class Launch
 			{
 				Model.load("test.txt");
 			}
-			catch (FileNotFoundException e)
+			catch (Exception e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();

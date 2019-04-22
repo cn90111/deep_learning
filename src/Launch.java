@@ -1,26 +1,19 @@
 import activation.Linear;
-import activation.Sigmoid;
+import activation.Relu;
 import initializer.Random;
 import layer.Layer;
 import loss.AbstractLossFunction;
-import loss.MeanSquaredError;
+import loss.CrossEntropy;
 import model.Model;
-import optimizer.BatchSizeParticleSwarmOptimizationBackPropagation;
-import optimizer.HybridParticleSwarmOptimizationBackPropagation;
+import optimizer.BackPropagation;
+
+
 
 public class Launch
 {
 	public static void main(String[] args)
 	{
-		int run = 5;
-		// epochs setting
-		// https://www.sciencedirect.com/science/article/pii/S0096300306008277
-		// ackley iteration
-		// BP = 10000, BS-IPSO = 500, IPSO-BP = pso:200 bp:1500
-		// ackley epochs
-		// BP = Math.ceil(10000/700) = 15, BS-IPSO = Math.ceil(500/(700/20)) = 15
-		// IPSO-BP = Math.ceil(1700/700)+1 = 4, BS-IPSO-BP = Math.ceil(1700/(700/20)) =
-		// 49
+		int run = 30;
 		int epochs = 10;
 		int hiddenLayerNeurons = 4;
 		double runAvgTime = 0;
@@ -29,24 +22,80 @@ public class Launch
 		// xor problem datasize = 8
 		// y = sin(2x)e^-x datasize = training data + testing data = 105 + 32 = 137
 		// ackley datasize = 1000, training data = 700, testing data = 300
-		int dataSize = 1000;
+		int dataSize = 8;
 
 		// xor problem, inputShape = 3
 		// y = sin(2x)e^-x, inputShape = 1
-		// ackley, inputShape = 2
-		int inputShape = 2;
+		// ackley, inputShape = any number
+		int inputShape = 3;
 		int outputShape = 1;
 
-		String timeFileName = "BSIPSOBP10ep4";
+		String timeFileName = "BP10ep4";
 
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
 
 		Timer timer;
 
+		// load File
+		// File loadFile;
+		// Scanner sc = null;
+		// try
+		// {
+		// loadFile = new File("./data1.csv");
+		// sc = new Scanner(loadFile);
+		// }
+		// catch (FileNotFoundException e)
+		// {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		//
+		// // jump title
+		// sc.nextLine();
+		//
+		// String line;
+		// String[] token;
+		// int lineCount = 0;
+		// while (sc.hasNextLine())
+		// {
+		// line = sc.nextLine();
+		// token = line.split(",");
+		//
+		// for (int i = 0; i < inputShape; i++)
+		// {
+		// if (token[i].equals("inf"))
+		// {
+		// feature[lineCount][i] = 0;
+		// }
+		// else
+		// {
+		// feature[lineCount][i] = Double.parseDouble(token[i]);
+		// }
+		// }
+		//
+		// if (token[token.length - 1].equals("Natural"))
+		// {
+		// label[lineCount][0] = 1;
+		// label[lineCount][1] = 0;
+		// }
+		// else if (token[token.length - 1].equals("Attack"))
+		// {
+		// label[lineCount][0] = 0;
+		// label[lineCount][1] = 1;
+		// }
+		// else
+		// {
+		// System.out.println("error:" + token[token.length - 1]);
+		// System.exit(0);
+		// }
+		//
+		// lineCount = lineCount + 1;
+		// }
+
 		// ackley
-		double ackleySum1;
-		double ackleySum2;
+		// double ackleySum1;
+		// double ackleySum2;
 
 		// sin(2x)e^-x problem
 		// double samplingNumber = 0;
@@ -64,16 +113,16 @@ public class Launch
 		// }
 
 		// xor problem
-		// double[][] xorDataSet = new double[][]
-		// {
-		// { 0, 0, 0 },
-		// { 0, 0, 1 },
-		// { 0, 1, 0 },
-		// { 0, 1, 1 },
-		// { 1, 0, 0 },
-		// { 1, 0, 1 },
-		// { 1, 1, 0 },
-		// { 1, 1, 1 } };
+		double[][] xorDataSet = new double[][]
+		{
+				{ 0, 0, 0 },
+				{ 0, 0, 1 },
+				{ 0, 1, 0 },
+				{ 0, 1, 1 },
+				{ 1, 0, 0 },
+				{ 1, 0, 1 },
+				{ 1, 1, 0 },
+				{ 1, 1, 1 } };
 
 		long timeStart, timeEnd;
 
@@ -82,55 +131,57 @@ public class Launch
 		for (int i = 0; i < dataSize; i++)
 		{
 			// ackley
-			ackleySum1 = 0;
-			ackleySum2 = 0;
+			// ackleySum1 = 0;
+			// ackleySum2 = 0;
 			for (int j = 0; j < inputShape; j++)
 			{
 				// xor problem
-				// feature[i][j] = xorDataSet[i][j];
+				feature[i][j] = xorDataSet[i][j];
 
 				// ackley
-				feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
-				ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
-				ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
+				// feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
+				// ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
+				// ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
 			}
 
 			// y = sin(2x)e^-x, inputShape = 1
 			// label[i][0] = Math.sin(2 * feature[i][0]) * Math.exp(-1 * feature[i][0]);
 
-			// ackley function, inputShape = 2
-			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) * ackleySum1))
-					- Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
+			// ackley function, inputShape = any number
+			// label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) *
+			// ackleySum1))
+			// - Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
 
 			// xor problem, inputShape = 3
-			// label[i][0] = 0;
-			// for (int j = 0; j < inputShape; j++)
-			// {
-			// label[i][0] = Math.abs(label[i][0] - feature[i][j]);
-			// }
+			label[i][0] = 0;
+			for (int j = 0; j < inputShape; j++)
+			{
+				label[i][0] = Math.abs(label[i][0] - feature[i][j]);
+			}
 		}
 
-		// shuffle
+		// training and testing shuffle
 		// xor and y = sin(2x)e^-x, shuffle close
-		double[] temp;
-		int randomNumber;
-		for (int i = 0; i < label.length; i++)
-		{
-			randomNumber = (int) (generator.nextDouble() * label.length);
-			temp = feature[i];
-			feature[i] = feature[randomNumber];
-			feature[randomNumber] = temp;
-			temp = label[i];
-			label[i] = label[randomNumber];
-			label[randomNumber] = temp;
-		}
+		// double[] temp;
+		// int randomNumber;
+		// for (int i = 0; i < label.length; i++)
+		// {
+		// randomNumber = (int) (generator.nextDouble() * label.length);
+		// temp = feature[i];
+		// feature[i] = feature[randomNumber];
+		// feature[randomNumber] = temp;
+		// temp = label[i];
+		// label[i] = label[randomNumber];
+		// label[randomNumber] = temp;
+		// }
 
 		// General problem 7:3
-		double[][] trainFeature = new double[(int) (dataSize * 0.7)][inputShape];
-		double[][] trainLabel = new double[trainFeature.length][outputShape];
-		double[][] testFeature = new double[dataSize - trainFeature.length][inputShape];
-		double[][] testLabel = new double[testFeature.length][outputShape];
-		double[][] predictLabel = new double[testFeature.length][outputShape];
+		// double[][] trainFeature = new double[(int) (dataSize * 0.7)][inputShape];
+		// double[][] trainLabel = new double[trainFeature.length][outputShape];
+		// double[][] testFeature = new double[dataSize -
+		// trainFeature.length][inputShape];
+		// double[][] testLabel = new double[testFeature.length][outputShape];
+		// double[][] predictLabel = new double[testFeature.length][outputShape];
 
 		// y = sin(2x)e^-x
 		// double[][] trainFeature = new double[105][inputShape];
@@ -140,25 +191,25 @@ public class Launch
 		// double[][] predictLabel = new double[testFeature.length][outputShape];
 
 		// xor problem
-		// double[][] trainFeature = new double[dataSize][inputShape];
-		// double[][] trainLabel = new double[trainFeature.length][outputShape];
-		// double[][] testFeature = new double[dataSize][inputShape];
-		// double[][] testLabel = new double[testFeature.length][outputShape];
-		// double[][] predictLabel = new double[testFeature.length][outputShape];
+		double[][] trainFeature = new double[dataSize][inputShape];
+		double[][] trainLabel = new double[trainFeature.length][outputShape];
+		double[][] testFeature = new double[dataSize][inputShape];
+		double[][] testLabel = new double[testFeature.length][outputShape];
+		double[][] predictLabel = new double[testFeature.length][outputShape];
 
 		for (int i = 0; i < label.length; i++)
 		{
 			// General problem 7:3
-			if (i < (int) (dataSize * 0.7))
-			{
-				trainFeature[i] = feature[i];
-				trainLabel[i] = label[i];
-			}
-			else
-			{
-				testFeature[i - (int) (dataSize * 0.7)] = feature[i];
-				testLabel[i - (int) (dataSize * 0.7)] = label[i];
-			}
+			// if (i < (int) (dataSize * 0.7))
+			// {
+			// trainFeature[i] = feature[i];
+			// trainLabel[i] = label[i];
+			// }
+			// else
+			// {
+			// testFeature[i - (int) (dataSize * 0.7)] = feature[i];
+			// testLabel[i - (int) (dataSize * 0.7)] = label[i];
+			// }
 
 			// y = sin(2x)e^-x
 			// if (i < 105)
@@ -173,13 +224,13 @@ public class Launch
 			// }
 
 			// xor problem
-			// trainFeature[i] = feature[i];
-			// trainLabel[i] = label[i];
-			// testFeature[i] = feature[i];
-			// testLabel[i] = label[i];
+			trainFeature[i] = feature[i];
+			trainLabel[i] = label[i];
+			testFeature[i] = feature[i];
+			testLabel[i] = label[i];
 		}
 
-		AbstractLossFunction loss = new MeanSquaredError();
+		AbstractLossFunction loss = new CrossEntropy();
 
 		for (int i = 0; i < run; i++)
 		{
@@ -187,11 +238,21 @@ public class Launch
 			double lossValue = 0;
 			double avgLossValue = 0;
 
-			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
-			model.add(new Layer(1, new Random(50, -50), new Linear()));
+			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Relu()));
 
-			// model.compile(inputShape, loss, new BackPropagation(0.01, 1));
+			model.add(new Layer(outputShape, new Random(50, -50), new Linear()));
 
+			model.compile(inputShape, loss, new BackPropagation(0.01, 1));
+
+			try
+			{
+				Model.load("test.txt");
+			}
+			catch (Exception e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
 			// General problem
@@ -202,7 +263,7 @@ public class Launch
 			// 99999, 1, 0, 10 * dataSize / 4,
 			// 1);
 			// model.compile(inputShape, loss, new
-			// BatchParticleSwarmOptimization(psoParameter, 70));
+			// BatchParticleSwarmOptimization(psoParameter, trainFeature.length / 10));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -222,17 +283,21 @@ public class Launch
 			// batch size = trainFeature.length/10
 			// xor problem
 			// batch size = 4
-			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
-					1);
-			model.compile(inputShape, loss, new BatchSizeParticleSwarmOptimizationBackPropagation(psoParameter, 70,
-					HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
+			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
+			// 99999, 1, 0, 10 * dataSize / 4,
+			// 1);
+			// model.compile(inputShape, loss,
+			// new BatchSizeParticleSwarmOptimizationBackPropagation(psoParameter,
+			// trainFeature.length / 10,
+			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
+			// 0.01, 0.05));
 
-			timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
-			timer.start();
+			// timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
+			// timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-			timer.close();
+			// timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

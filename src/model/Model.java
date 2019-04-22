@@ -175,6 +175,22 @@ public class Model
 		return bias;
 	}
 
+	private void shuffle(double[][] feature, double[][] trueValue)
+	{
+		double[] temp;
+		int randomNumber;
+		for (int i = 0; i < trueValue.length; i++)
+		{
+			randomNumber = (int) (Math.random() * trueValue.length);
+			temp = feature[i];
+			feature[i] = feature[randomNumber];
+			feature[randomNumber] = temp;
+			temp = trueValue[i];
+			trueValue[i] = trueValue[randomNumber];
+			trueValue[randomNumber] = temp;
+		}
+	}
+
 	public void save(String filePath) throws IOException
 	{
 		FileWriter fw = new FileWriter(filePath);
@@ -246,7 +262,7 @@ public class Model
 		int neuronCount = 0;
 		int linkCount = 0;
 
-		ArrayList<Double> value = new ArrayList<Double>();
+		ArrayList<Double> value = null;
 		double[][] weight = null;
 		double[] bias = null;
 
@@ -258,7 +274,6 @@ public class Model
 		{
 			line = weightFile.nextLine();
 			tokens = line.split("[,:\\s\\[\\]]");
-			value.clear();
 			findSpecialToken = false;
 
 			for (int i = 0; i < tokens.length; i++)
@@ -275,7 +290,6 @@ public class Model
 
 			for (int i = 0; i < tokens.length; i++)
 			{
-				System.out.println(tokens[i]);
 				switch (tokens[i])
 				{
 					case "layer":
@@ -284,24 +298,7 @@ public class Model
 						break;
 					case "activation":
 						i++;
-						switch (tokens[i])
-						{
-							case "Relu":
-								activation = new Relu();
-								break;
-							case "Linear":
-								activation = new Linear();
-								break;
-							case "Sigmoid":
-								activation = new Sigmoid();
-								break;
-							case "Softmax":
-								activation = new Softmax();
-								break;
-							default:
-								System.out.println("Not support " + tokens[i] + "activation");
-								System.exit(0);
-						}
+						activation = loadModel.loadActivation(tokens[i]);
 						findSpecialToken = true;
 						break;
 					case "input":
@@ -320,33 +317,13 @@ public class Model
 					case "weight":
 						previousMode = mode;
 						mode = "add weight";
-						for (int j = i + 1; j < tokens.length; j++)
-						{
-							if (!tokens[j].equals(""))
-							{
-								value.add(Double.parseDouble(tokens[j]));
-							}
-							else
-							{
-								j = tokens.length;
-							}
-						}
+						value = loadModel.loadNumber(tokens, 1);
 						findSpecialToken = true;
 						break;
 					case "bias":
 						previousMode = mode;
 						mode = "add bias";
-						for (int j = i + 1; j < tokens.length; j++)
-						{
-							if (!tokens[j].equals(""))
-							{
-								value.add(Double.parseDouble(tokens[j]));
-							}
-							else
-							{
-								j = tokens.length;
-							}
-						}
+						value = loadModel.loadNumber(tokens, 1);
 						findSpecialToken = true;
 						break;
 				}
@@ -355,17 +332,7 @@ public class Model
 			if (findSpecialToken == false)
 			{
 				previousMode = mode;
-				for (int i = 0; i < tokens.length; i++)
-				{
-					if (!tokens[i].equals(""))
-					{
-						value.add(Double.parseDouble(tokens[i]));
-					}
-					else
-					{
-						i = tokens.length;
-					}
-				}
+				value = loadModel.loadNumber(tokens, 0);
 			}
 
 			switch (mode)
@@ -378,21 +345,22 @@ public class Model
 					{
 						loadModel.neuronLink(inputShape);
 						loadLayer = loadModel.getLayerArray();
+
 						nowLayerCount = 0;
-						weight = loadLayer[nowLayerCount].getWeight();
-						bias = loadLayer[nowLayerCount].getBias();
 						neuronCount = 0;
 						linkCount = 0;
+						weight = loadLayer[nowLayerCount].getWeight();
+						bias = loadLayer[nowLayerCount].getBias();
 					}
 					else if (previousMode.equals("add bias"))
 					{
 						loadLayer[nowLayerCount].updateBias(bias);
 
 						nowLayerCount = nowLayerCount + 1;
-						weight = loadLayer[nowLayerCount].getWeight();
-						bias = loadLayer[nowLayerCount].getBias();
 						neuronCount = 0;
 						linkCount = 0;
+						weight = loadLayer[nowLayerCount].getWeight();
+						bias = loadLayer[nowLayerCount].getBias();
 					}
 					for (int i = 0; i < value.size(); i++)
 					{
@@ -425,20 +393,40 @@ public class Model
 		return loadModel;
 	}
 
-	private void shuffle(double[][] feature, double[][] trueValue)
+	private AbstractActivation loadActivation(String activationName)
 	{
-		double[] temp;
-		int randomNumber;
-		for (int i = 0; i < trueValue.length; i++)
+		AbstractActivation activation = null;
+		switch (activationName)
 		{
-			randomNumber = (int) (Math.random() * trueValue.length);
-			temp = feature[i];
-			feature[i] = feature[randomNumber];
-			feature[randomNumber] = temp;
-			temp = trueValue[i];
-			trueValue[i] = trueValue[randomNumber];
-			trueValue[randomNumber] = temp;
+			case "Relu":
+				activation = new Relu();
+				break;
+			case "Linear":
+				activation = new Linear();
+				break;
+			case "Sigmoid":
+				activation = new Sigmoid();
+				break;
+			case "Softmax":
+				activation = new Softmax();
+				break;
+			default:
+				System.out.println("Not support " + activationName + "activation");
+				System.exit(0);
 		}
+		return activation;
+	}
 
+	private ArrayList<Double> loadNumber(String[] tokens, int startIndex)
+	{
+		ArrayList<Double> numberList = new ArrayList<Double>();
+		for (int i = startIndex; i < tokens.length; i++)
+		{
+			if (!tokens[i].equals(""))
+			{
+				numberList.add(Double.parseDouble(tokens[i]));
+			}
+		}
+		return numberList;
 	}
 }

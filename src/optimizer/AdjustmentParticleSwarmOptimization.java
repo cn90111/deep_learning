@@ -187,9 +187,9 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 		evaluateLayers[0].dataIn(feature);
 		for (int i = 1; i < evaluateLayers.length; i++)
 		{
-			evaluateLayers[i].dataIn(evaluateLayers[i - 1].dataOut());
+			evaluateLayers[i].dataIn(evaluateLayers[i - 1].dataOutput());
 		}
-		return evaluateLayers[evaluateLayers.length - 1].dataOut();
+		return evaluateLayers[evaluateLayers.length - 1].dataOutput();
 	}
 
 	protected void determine()

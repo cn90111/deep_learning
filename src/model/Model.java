@@ -150,9 +150,9 @@ public class Model
 		layerArray[0].dataIn(feature);
 		for (int i = 1; i < layerArray.length; i++)
 		{
-			layerArray[i].dataIn(layerArray[i - 1].dataOut());
+			layerArray[i].dataIn(layerArray[i - 1].dataOutput());
 		}
-		return layerArray[layerArray.length - 1].dataOut();
+		return layerArray[layerArray.length - 1].dataOutput();
 	}
 
 	public double[][][] getWeight()

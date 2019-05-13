@@ -3,11 +3,9 @@ import activation.Relu;
 import initializer.Random;
 import layer.Layer;
 import loss.AbstractLossFunction;
-import loss.CrossEntropy;
+import loss.MeanSquaredError;
 import model.Model;
 import optimizer.BackPropagation;
-
-
 
 public class Launch
 {
@@ -35,7 +33,7 @@ public class Launch
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
 
-		Timer timer;
+		Timer timer = null;
 
 		// load File
 		// File loadFile;
@@ -230,7 +228,7 @@ public class Launch
 			testLabel[i] = label[i];
 		}
 
-		AbstractLossFunction loss = new CrossEntropy();
+		AbstractLossFunction loss = new MeanSquaredError();
 
 		for (int i = 0; i < run; i++)
 		{
@@ -244,15 +242,6 @@ public class Launch
 
 			model.compile(inputShape, loss, new BackPropagation(0.01, 1));
 
-			try
-			{
-				Model.load("test.txt");
-			}
-			catch (Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
 			// General problem
@@ -292,12 +281,12 @@ public class Launch
 			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
 			// 0.01, 0.05));
 
-			// timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
-			// timer.start();
+//			timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
+//			timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-			// timer.close();
+//			timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

@@ -99,7 +99,7 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 			System.out.println("Activation can't Differential");
 			System.exit(1);
 		}
-		previousDataOutput = previousLayer.dataOut();
+		previousDataOutput = previousLayer.previousActivationOutput();
 		previousError = ((Differentiable) previousActivation).toDifferentiate(previousDataOutput);
 		for (int i = 0; i < previousError.length; i++)
 		{

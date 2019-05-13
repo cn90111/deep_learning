@@ -35,7 +35,7 @@ public class Layer
 		{
 			neurons[i].dataIn(data);
 		}
-		output = calculate(input, activation);
+		output = calculate();
 	}
 
 	public double[] getInput()
@@ -43,7 +43,7 @@ public class Layer
 		return input;
 	}
 
-	private double[] calculate(double[] input, AbstractActivation activation)
+	private double[] calculate()
 	{
 		double[] output = new double[neurons.length];
 
@@ -51,15 +51,17 @@ public class Layer
 		{
 			output[i] = neurons[i].dataOut();
 		}
-
-		output = activation.calculate(output);
-
 		return output;
 	}
-
-	public double[] dataOut()
+	
+	public double[] previousActivationOutput()
 	{
 		return output;
+	}
+	
+	public double[] dataOutput()
+	{
+		return activation.calculate(output);
 	}
 
 	public void setLinkSize(int size)

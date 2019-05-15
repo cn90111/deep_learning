@@ -67,16 +67,6 @@ public class Timer extends Thread
 
 			try
 			{
-				file.close();
-			}
-			catch (IOException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			try
-			{
 				Thread.sleep(100);
 			}
 			catch (InterruptedException e)
@@ -84,6 +74,19 @@ public class Timer extends Thread
 				e.printStackTrace();
 			}
 			timeCount = timeCount + 1;
+
+			if (stop)
+			{
+				try
+				{
+					file.close();
+				}
+				catch (IOException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 

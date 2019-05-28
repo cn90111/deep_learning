@@ -6,12 +6,6 @@ import pso.Particle;
 
 public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptimization implements SupportBatchUpdate
 {
-	protected int batchSize;
-	protected int batchCount;
-
-	protected double[][] featureArray;
-	protected double[][] labelArray;
-
 	public BatchParticleSwarmOptimization(pso.Parameter psoParameter)
 	{
 		this(psoParameter, 1);
@@ -19,26 +13,13 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 
 	public BatchParticleSwarmOptimization(pso.Parameter psoParameter, int batch)
 	{
-		super(psoParameter);
-
-		this.batchSize = batch;
-
-		featureArray = new double[batchSize][];
-		labelArray = new double[batchSize][];
-
-		batchCount = 0;
+		super(psoParameter, batch);
 	}
 
 	@Override
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
 		super.setConfiguration(layers, lossFunction);
-
-		for (int i = 0; i < batchSize; i++)
-		{
-			featureArray[i] = new double[layers[0].getLinkSize()];
-			labelArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
-		}
 
 		resetBatch();
 	}
@@ -82,26 +63,7 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	@Override
 	public void update(double[] guessValue, double[] trueValue)
 	{
-		updateCount = updateCount + 1;
-		if (updateCount < pso.linearEndCount)
-		{
-			w = pso.maxW - (pso.linearEndW / pso.linearEndCount) * updateCount;
-		}
-		else
-		{
-			w = (pso.maxW - pso.linearEndW) * Math.exp((pso.linearEndCount - updateCount) / pso.nonlinearlyWeight);
-		}
-		double[] feature = layers[0].getInput();
-
-		saveValueToArray(featureArray, feature, batchCount);
-		saveValueToArray(labelArray, trueValue, batchCount);
-
-		batchCount = batchCount + 1;
-
-		if (batchCount >= batchSize)
-		{
-			batchUpdate();
-		}
+		super.update(guessValue, trueValue);
 	}
 
 	@Override
@@ -126,13 +88,13 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	@Override
 	public int getBatchSize()
 	{
-		return batchSize;
+		return dataSize;
 	}
 
 	@Override
 	public void resetBatch()
 	{
-		batchCount = 0;
+		dataCount = 0;
 
 		for (int i = 0; i < featureArray.length; i++)
 		{
@@ -152,5 +114,11 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	public void newEpoch(int currentEpoch)
 	{
 
+	}
+
+	@Override
+	public void update()
+	{
+		batchUpdate();
 	}
 }

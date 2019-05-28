@@ -5,7 +5,6 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import model.Model;
-import optimizer.BatchSizeParticleSwarmOptimizationBackPropagation;
 import optimizer.HybridParticleSwarmOptimizationBackPropagation;
 
 public class Launch
@@ -13,12 +12,12 @@ public class Launch
 	public static void main(String[] args)
 	{
 		int run = 30;
-		int epochs = 300;
+		int epochs = 10;
 		int hiddenLayerNeurons = 4;
 		double runAvgTime = 0;
 		double runAvgMse = 0;
 
-		// xor problem datasize = 8	
+		// xor problem datasize = 8
 		// y = sin(2x)e^-x datasize = training data + testing data = 105 + 32 = 137
 		// ackley datasize = 1000, training data = 700, testing data = 300
 		int dataSize = 1000;
@@ -26,7 +25,7 @@ public class Launch
 		// xor problem, inputShape = 3
 		// y = sin(2x)e^-x, inputShape = 1
 		// ackley, inputShape = any number
-		int inputShape = 30;
+		int inputShape = 2;
 		int outputShape = 1;
 
 		String timeFileName = "BSIPSOBP300ep4";
@@ -93,23 +92,23 @@ public class Launch
 		// }
 
 		// ackley
-		 double ackleySum1;
-		 double ackleySum2;
+		double ackleySum1;
+		double ackleySum2;
 
 		// sin(2x)e^-x problem
-//		double samplingNumber = 0;
-//		for (int i = 0; i < 105; i++)
-//		{
-//			feature[i][0] = samplingNumber;
-//			samplingNumber = samplingNumber + 0.03;
-//		}
-//
-//		samplingNumber = 0.02;
-//		for (int i = 105; i < feature.length; i++)
-//		{
-//			feature[i][0] = samplingNumber;
-//			samplingNumber = samplingNumber + 0.1;
-//		}
+		// double samplingNumber = 0;
+		// for (int i = 0; i < 105; i++)
+		// {
+		// feature[i][0] = samplingNumber;
+		// samplingNumber = samplingNumber + 0.03;
+		// }
+		//
+		// samplingNumber = 0.02;
+		// for (int i = 105; i < feature.length; i++)
+		// {
+		// feature[i][0] = samplingNumber;
+		// samplingNumber = samplingNumber + 0.1;
+		// }
 
 		// xor problem
 		// double[][] xorDataSet = new double[][]
@@ -130,26 +129,25 @@ public class Launch
 		for (int i = 0; i < dataSize; i++)
 		{
 			// ackley
-			 ackleySum1 = 0;
-			 ackleySum2 = 0;
-			 for (int j = 0; j < inputShape; j++)
-			 {
-			 // xor problem
-			 // feature[i][j] = xorDataSet[i][j];
-			
-			 // ackley
-			 feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
-			 ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
-			 ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
-			 }
+			ackleySum1 = 0;
+			ackleySum2 = 0;
+			for (int j = 0; j < inputShape; j++)
+			{
+				// xor problem
+				// feature[i][j] = xorDataSet[i][j];
+
+				// ackley
+				feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
+				ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
+				ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
+			}
 
 			// y = sin(2x)e^-x, inputShape = 1
-//			label[i][0] = Math.sin(2 * feature[i][0]) * Math.exp(-1 * feature[i][0]);
+			// label[i][0] = Math.sin(2 * feature[i][0]) * Math.exp(-1 * feature[i][0]);
 
 			// ackley function, inputShape = any number
-			 label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) *
-			 ackleySum1))
-			 - Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
+			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) * ackleySum1))
+					- Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
 
 			// xor problem, inputShape = 3
 			// label[i][0] = 0;
@@ -161,33 +159,32 @@ public class Launch
 
 		// training and testing shuffle
 		// xor and y = sin(2x)e^-x, shuffle close
-		 double[] temp;
-		 int randomNumber;
-		 for (int i = 0; i < label.length; i++)
-		 {
-		 randomNumber = (int) (generator.nextDouble() * label.length);
-		 temp = feature[i];
-		 feature[i] = feature[randomNumber];
-		 feature[randomNumber] = temp;
-		 temp = label[i];
-		 label[i] = label[randomNumber];
-		 label[randomNumber] = temp;
-		 }
+		double[] temp;
+		int randomNumber;
+		for (int i = 0; i < label.length; i++)
+		{
+			randomNumber = (int) (generator.nextDouble() * label.length);
+			temp = feature[i];
+			feature[i] = feature[randomNumber];
+			feature[randomNumber] = temp;
+			temp = label[i];
+			label[i] = label[randomNumber];
+			label[randomNumber] = temp;
+		}
 
 		// General problem 7:3
-		 double[][] trainFeature = new double[(int) (dataSize * 0.7)][inputShape];
-		 double[][] trainLabel = new double[trainFeature.length][outputShape];
-		 double[][] testFeature = new double[dataSize -
-		 trainFeature.length][inputShape];
-		 double[][] testLabel = new double[testFeature.length][outputShape];
-		 double[][] predictLabel = new double[testFeature.length][outputShape];
+		double[][] trainFeature = new double[(int) (dataSize * 0.7)][inputShape];
+		double[][] trainLabel = new double[trainFeature.length][outputShape];
+		double[][] testFeature = new double[dataSize - trainFeature.length][inputShape];
+		double[][] testLabel = new double[testFeature.length][outputShape];
+		double[][] predictLabel = new double[testFeature.length][outputShape];
 
 		// y = sin(2x)e^-x
-//		double[][] trainFeature = new double[105][inputShape];
-//		double[][] trainLabel = new double[trainFeature.length][outputShape];
-//		double[][] testFeature = new double[32][inputShape];
-//		double[][] testLabel = new double[testFeature.length][outputShape];
-//		double[][] predictLabel = new double[testFeature.length][outputShape];
+		// double[][] trainFeature = new double[105][inputShape];
+		// double[][] trainLabel = new double[trainFeature.length][outputShape];
+		// double[][] testFeature = new double[32][inputShape];
+		// double[][] testLabel = new double[testFeature.length][outputShape];
+		// double[][] predictLabel = new double[testFeature.length][outputShape];
 
 		// xor problem
 		// double[][] trainFeature = new double[dataSize][inputShape];
@@ -199,28 +196,28 @@ public class Launch
 		for (int i = 0; i < label.length; i++)
 		{
 			// General problem 7:3
-			 if (i < (int) (dataSize * 0.7))
-			 {
-			 trainFeature[i] = feature[i];
-			 trainLabel[i] = label[i];
-			 }
-			 else
-			 {
-			 testFeature[i - (int) (dataSize * 0.7)] = feature[i];
-			 testLabel[i - (int) (dataSize * 0.7)] = label[i];
-			 }
+			if (i < (int) (dataSize * 0.7))
+			{
+				trainFeature[i] = feature[i];
+				trainLabel[i] = label[i];
+			}
+			else
+			{
+				testFeature[i - (int) (dataSize * 0.7)] = feature[i];
+				testLabel[i - (int) (dataSize * 0.7)] = label[i];
+			}
 
 			// y = sin(2x)e^-x
-//			if (i < 105)
-//			{
-//				trainFeature[i] = feature[i];
-//				trainLabel[i] = label[i];
-//			}
-//			else
-//			{
-//				testFeature[i - 105] = feature[i];
-//				testLabel[i - 105] = label[i];
-//			}
+			// if (i < 105)
+			// {
+			// trainFeature[i] = feature[i];
+			// trainLabel[i] = label[i];
+			// }
+			// else
+			// {
+			// testFeature[i - 105] = feature[i];
+			// testLabel[i - 105] = label[i];
+			// }
 
 			// xor problem
 			// trainFeature[i] = feature[i];
@@ -237,8 +234,6 @@ public class Launch
 			double lossValue = 0;
 			double avgLossValue = 0;
 
-			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
-			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
 			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
 
 			model.add(new Layer(outputShape, new Random(50, -50), new Linear()));
@@ -260,14 +255,11 @@ public class Launch
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
 			// IPSO-BP batch size = trainFeature.length
-			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
-			// 99999, 1, 0, 10 * dataSize / 4,
-			// 1);
-			// model.compile(inputShape, loss,
-			// new HybridParticleSwarmOptimizationBackPropagation(psoParameter,
-			// trainFeature.length,
-			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
-			// 0.01, 0.05));
+			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
+					1);
+			model.compile(inputShape, loss,
+					new HybridParticleSwarmOptimizationBackPropagation(psoParameter, trainFeature.length/10,
+							HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -275,18 +267,21 @@ public class Launch
 			// batch size = trainFeature.length/10
 			// xor problem
 			// batch size = 4
-			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
-					1);
-			model.compile(inputShape, loss,
-					new BatchSizeParticleSwarmOptimizationBackPropagation(psoParameter, trainFeature.length / 10,
-							HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
+			// pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
+			// 99999, 1, 0, 10 * dataSize / 4,
+			// 1);
+			// model.compile(inputShape, loss,
+			// new BatchSizeParticleSwarmOptimizationBackPropagation(psoParameter,
+			// trainFeature.length / 10,
+			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
+			// 0.01, 0.05));
 
-			timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
-			timer.start();
+			// timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
+			// timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-			timer.close();
+			// timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

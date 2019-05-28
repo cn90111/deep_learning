@@ -15,8 +15,9 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 	protected double w;
 	protected int updateCount;
 
-	public AdjustmentParticleSwarmOptimization(pso.Parameter psoParameter)
+	public AdjustmentParticleSwarmOptimization(pso.Parameter psoParameter, int dataSize)
 	{
+		super(dataSize);
 		this.pso = psoParameter;
 
 		updateCount = 0;
@@ -36,6 +37,27 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 		for (int i = 0; i < particle.length; i++)
 		{
 			particleInit(particle[i], globalBestSolution.getWeight(), globalBestSolution.getBias());
+		}
+	}
+	
+	@Override
+	public void update(double[] guessValue, double[] trueValue)
+	{
+		updateInertia();
+
+		super.update(guessValue, trueValue);
+	}
+	
+	protected void updateInertia()
+	{
+		updateCount = updateCount + 1;
+		if (updateCount < pso.linearEndCount)
+		{
+			w = pso.maxW - (pso.linearEndW / pso.linearEndCount) * updateCount;
+		}
+		else
+		{
+			w = (pso.maxW - pso.linearEndW) * Math.exp((pso.linearEndCount - updateCount) / pso.nonlinearlyWeight);
 		}
 	}
 
@@ -191,14 +213,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 				globalBestValue = temp.getLocalBestValue();
 				globalBestSolution = temp.getLocalBestSolution();
 			}
-		}
-	}
-
-	protected void saveValueToArray(double[][] array, double[] value, int index)
-	{
-		for (int i = 0; i < value.length; i++)
-		{
-			array[index][i] = value[i];
 		}
 	}
 }

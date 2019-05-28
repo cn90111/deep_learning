@@ -31,8 +31,7 @@ public class BackPropagation extends Optimizer implements SupportBatchUpdate
 
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
-		this.layers = layers;
-		this.lossFunction = lossFunction;
+		super.setConfiguration(layers, lossFunction);
 		this.weightDeltaArray = new double[layers.length][][];
 		this.biasDeltaArray = new double[layers.length][];
 

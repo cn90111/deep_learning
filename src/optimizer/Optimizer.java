@@ -13,7 +13,11 @@ public abstract class Optimizer
 	{
 	}
 
-	public abstract void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction);
+	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
+	{
+		this.layers = layers;
+		this.lossFunction = lossFunction;
+	}
 
 	public abstract void update(double guessValue[], double trueValue[]);
 

@@ -7,13 +7,10 @@ import pso.Solution;
 
 //PSO w auto Adjustment
 //https://www.sciencedirect.com/science/article/pii/S0096300306008277
-public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
+public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicOptimizer
 {
 	protected pso.Parameter pso;
-	protected Solution globalBestSolution;
-	protected double globalBestValue;
 	protected Particle[] particle;
-	protected Layer[] evaluateLayers;
 
 	protected double w;
 	protected int updateCount;
@@ -34,41 +31,26 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 	@Override
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
-		this.layers = layers;
-		this.lossFunction = lossFunction;
-		double[][][] weight = new double[layers.length][][];
-		double[][] bias = new double[layers.length][];
-		evaluateLayers = new Layer[layers.length];
-
-		for (int i = 0; i < layers.length; i++)
-		{
-			weight[i] = layers[i].getWeight();
-			bias[i] = layers[i].getBias();
-			evaluateLayers[i] = new Layer(layers[i]);
-		}
-
-		globalBestSolution = new Solution();
-		globalBestSolution.setWeight(weight);
-		globalBestSolution.setBias(bias);
+		super.setConfiguration(layers, lossFunction);
 
 		for (int i = 0; i < particle.length; i++)
 		{
-			particleInit(particle[i], weight, bias);
+			particleInit(particle[i], globalBestSolution.getWeight(), globalBestSolution.getBias());
 		}
 	}
 
-	private void particleInit(Particle particle, double[][][] weight, double[][] bias)
+	private void particleInit(Particle particle, double[][][] weightSize, double[][] biasSize)
 	{
-		setVelocity(particle, weight, bias);
-		setSolution(particle, weight, bias);
+		setVelocity(particle, weightSize, biasSize);
+		setSolution(particle, weightSize, biasSize);
 	}
 
-	protected void setVelocity(Particle particle, double[][][] weight, double[][] bias)
+	protected void setVelocity(Particle particle, double[][][] weightSize, double[][] biasSize)
 	{
 		double[][][] weightVelocity;
 		double[][] biasVelocity;
-		weightVelocity = randomSetValueTo3DArray(weight, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
-		biasVelocity = randomSetValueTo2DArray(bias, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
+		weightVelocity = randomSetValueTo3DArray(weightSize, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
+		biasVelocity = randomSetValueTo2DArray(biasSize, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
 		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
 	}
 

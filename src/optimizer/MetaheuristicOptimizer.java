@@ -85,4 +85,26 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 			array[index][i] = value[i];
 		}
 	}
+	
+	protected void setSolutionWeightToLayers(Solution solution)
+	{
+		double[][][] weight = solution.getWeight();
+		double[][] bias = solution.getBias();
+
+		for (int i = 0; i < evaluateLayers.length; i++)
+		{
+			evaluateLayers[i].updateWeight(weight[i]);
+			evaluateLayers[i].updateBias(bias[i]);
+		}
+	}
+
+	protected double[] predict(double[] feature)
+	{
+		evaluateLayers[0].dataIn(feature);
+		for (int i = 1; i < evaluateLayers.length; i++)
+		{
+			evaluateLayers[i].dataIn(evaluateLayers[i - 1].dataOutput());
+		}
+		return evaluateLayers[evaluateLayers.length - 1].dataOutput();
+	}
 }

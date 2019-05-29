@@ -163,18 +163,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 		particle.updateSolution(particle.getVelocity());
 	}
 
-	protected void setSolutionWeightToLayers(Solution solution)
-	{
-		double[][][] weight = solution.getWeight();
-		double[][] bias = solution.getBias();
-
-		for (int i = 0; i < evaluateLayers.length; i++)
-		{
-			evaluateLayers[i].updateWeight(weight[i]);
-			evaluateLayers[i].updateBias(bias[i]);
-		}
-	}
-
 	protected double evaluate(double[] feature, double[] label)
 	{
 		double[] predictLabel;
@@ -184,16 +172,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 		error = lossFunction.getError(predictLabel, label);
 
 		return error;
-	}
-
-	protected double[] predict(double[] feature)
-	{
-		evaluateLayers[0].dataIn(feature);
-		for (int i = 1; i < evaluateLayers.length; i++)
-		{
-			evaluateLayers[i].dataIn(evaluateLayers[i - 1].dataOutput());
-		}
-		return evaluateLayers[evaluateLayers.length - 1].dataOutput();
 	}
 
 	protected void determine()

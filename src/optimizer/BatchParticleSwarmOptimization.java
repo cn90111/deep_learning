@@ -67,6 +67,12 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	}
 
 	@Override
+	public void update()
+	{
+		batchUpdate();
+	}
+	
+	@Override
 	public void batchUpdate()
 	{
 		evaluate(featureArray, labelArray);
@@ -114,11 +120,5 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	public void newEpoch(int currentEpoch)
 	{
 
-	}
-
-	@Override
-	public void update()
-	{
-		batchUpdate();
 	}
 }

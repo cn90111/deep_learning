@@ -2,20 +2,21 @@ package optimizer;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Particle;
-import pso.Solution;
+import metaheuristic.Particle;
+import metaheuristic.PsoParameter;
+import metaheuristic.Solution;
 
 //PSO w auto Adjustment
 //https://www.sciencedirect.com/science/article/pii/S0096300306008277
 public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicOptimizer
 {
-	protected pso.Parameter pso;
+	protected PsoParameter pso;
 	protected Particle[] particle;
 
 	protected double w;
 	protected int updateCount;
 
-	public AdjustmentParticleSwarmOptimization(pso.Parameter psoParameter, int dataSize)
+	public AdjustmentParticleSwarmOptimization(metaheuristic.PsoParameter psoParameter, int dataSize)
 	{
 		super(dataSize);
 		this.pso = psoParameter;
@@ -39,7 +40,7 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 			particleInit(particle[i], globalBestSolution.getWeight(), globalBestSolution.getBias());
 		}
 	}
-	
+
 	@Override
 	public void update(double[] guessValue, double[] trueValue)
 	{
@@ -47,7 +48,7 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 
 		super.update(guessValue, trueValue);
 	}
-	
+
 	protected void updateInertia()
 	{
 		updateCount = updateCount + 1;
@@ -71,8 +72,8 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 	{
 		double[][][] weightVelocity;
 		double[][] biasVelocity;
-		weightVelocity = randomSetValueTo3DArray(weightSize, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
-		biasVelocity = randomSetValueTo2DArray(biasSize, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
+		weightVelocity = randomSetValueTo3DArray(weightSize, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
+		biasVelocity = randomSetValueTo2DArray(biasSize, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
 		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
 	}
 
@@ -80,8 +81,8 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 	{
 		double[][][] solutionWeight = null;
 		double[][] solutionBias = null;
-		solutionWeight = randomSetValueTo3DArray(weight, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
-		solutionBias = randomSetValueTo2DArray(bias, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
+		solutionWeight = randomSetValueTo3DArray(weight, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
+		solutionBias = randomSetValueTo2DArray(bias, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
 		particle.setNowSolution(new Solution(solutionWeight, solutionBias));
 		particle.setLocalBestSolution(new Solution(solutionWeight, solutionBias));
 	}
@@ -161,17 +162,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicO
 		}
 		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
 		particle.updateSolution(particle.getVelocity());
-	}
-
-	protected double evaluate(double[] feature, double[] label)
-	{
-		double[] predictLabel;
-		double error;
-
-		predictLabel = predict(feature);
-		error = lossFunction.getError(predictLabel, label);
-
-		return error;
 	}
 
 	protected void determine()

@@ -1,4 +1,5 @@
-package pso;
+package metaheuristic;
+
 
 public class Solution
 {

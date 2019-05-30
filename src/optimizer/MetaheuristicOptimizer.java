@@ -2,7 +2,7 @@ package optimizer;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Solution;
+import metaheuristic.Solution;
 
 public abstract class MetaheuristicOptimizer extends Optimizer
 {
@@ -96,6 +96,17 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 			evaluateLayers[i].updateWeight(weight[i]);
 			evaluateLayers[i].updateBias(bias[i]);
 		}
+	}
+	
+	protected double evaluate(double[] feature, double[] label)
+	{
+		double[] predictLabel;
+		double error;
+
+		predictLabel = predict(feature);
+		error = lossFunction.getError(predictLabel, label);
+
+		return error;
 	}
 
 	protected double[] predict(double[] feature)

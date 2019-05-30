@@ -2,16 +2,16 @@ package optimizer;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Particle;
+import metaheuristic.Particle;
 
 public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptimization implements SupportBatchUpdate
 {
-	public BatchParticleSwarmOptimization(pso.Parameter psoParameter)
+	public BatchParticleSwarmOptimization(metaheuristic.PsoParameter psoParameter)
 	{
 		this(psoParameter, 1);
 	}
 
-	public BatchParticleSwarmOptimization(pso.Parameter psoParameter, int batch)
+	public BatchParticleSwarmOptimization(metaheuristic.PsoParameter psoParameter, int batch)
 	{
 		super(psoParameter, batch);
 	}

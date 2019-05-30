@@ -255,7 +255,7 @@ public class Launch
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
 			// IPSO-BP batch size = trainFeature.length
-			pso.Parameter psoParameter = new pso.Parameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
+			metaheuristic.PsoParameter psoParameter = new metaheuristic.PsoParameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
 					1);
 			model.compile(inputShape, loss,
 					new HybridParticleSwarmOptimizationBackPropagation(psoParameter, trainFeature.length/10,

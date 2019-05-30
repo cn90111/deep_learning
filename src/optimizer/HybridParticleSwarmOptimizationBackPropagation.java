@@ -4,8 +4,8 @@ import activation.AbstractActivation;
 import activation.Differentiable;
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Particle;
-import pso.Solution;
+import metaheuristic.Particle;
+import metaheuristic.Solution;
 
 // PSO-BP
 // https://www.sciencedirect.com/science/article/pii/S0096300306008277
@@ -37,7 +37,7 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 	// layer bias
 	private double[][] biasDeltaArray;
 
-	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int dataSize, int condition,
+	public HybridParticleSwarmOptimizationBackPropagation(metaheuristic.PsoParameter psoParameter, int dataSize, int condition,
 			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
 	{
 		super(psoParameter, dataSize);

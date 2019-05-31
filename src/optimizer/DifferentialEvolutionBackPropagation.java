@@ -10,6 +10,9 @@ import metaheuristic.Solution;
 
 public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 {
+	public static final int UPDATE_MODE_BEST = 0;
+	public static final int UPDATE_MODE_RANDOM = 1;
+
 	private DeParameter de;
 
 	private int deGenerations;
@@ -26,11 +29,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 
 	private DeSolution[] solutions;
 
-	private boolean firstEvalutate;
-
-	// DE/best/1/bin strategy
-	private int updateMode;// best or random
-	private int groupNumber;// 1,2,3....
+	private int bestIndex;
 
 	public DifferentialEvolutionBackPropagation(DeParameter de, int dataSize, int deGenerations, double learningRate,
 			double learningRateDecayRate)
@@ -40,7 +39,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		this.deCount = 0;
 		this.originLearningRate = learningRate;
 		this.learningRateDecayRate = learningRateDecayRate;
-		this.firstEvalutate = true;
+		this.bestIndex = -1;
 
 		for (int i = 0; i < de.size; i++)
 		{
@@ -130,6 +129,16 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		crossover();
 		evaluate(featureArray, labelArray);
 		determine();
+
+		double[][][] weight = globalBestSolution.getWeight();
+		double[][] bias = globalBestSolution.getBias();
+		for (int i = 0; i < layers.length; i++)
+		{
+			layers[i].updateWeight(weight[i]);
+			layers[i].updateBias(bias[i]);
+		}
+
+		deCount = deCount + 1;
 	}
 
 	private void evaluate(double[][] feature, double[][] label)
@@ -175,6 +184,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			{
 				globalBestValue = temp.getNowValue();
 				globalBestSolution = temp.getNowSolution();
+				bestIndex = i;
 			}
 		}
 	}
@@ -183,30 +193,37 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 	{
 		for (int i = 0; i < solutions.length; i++)
 		{
-			int[] indexArray = randomArray(i);
+			int[] indexArray = randomArray(i, de.updateMode);
 
-			DeSolution[] randomSolutions = new DeSolution[3];
+			Solution[] randomSolutions = new Solution[de.totalRandom];
 
-			for (int j = 0; j < 3; i++)
+			for (int j = 0; j < de.totalRandom; i++)
 			{
-				randomSolutions[j] = solutions[indexArray[j + 1]];
+				if (indexArray[j + 1] == -1) // if neuron network init is best.
+				{
+					randomSolutions[j] = globalBestSolution;
+				}
+				else
+				{
+					randomSolutions[j] = solutions[indexArray[j + 1]].getNowSolution();
+				}
 			}
 
 			mutation(solutions[indexArray[0]], randomSolutions);
 		}
 	}
 
-	private void mutation(DeSolution targetSolution, DeSolution[] referenceSolutions)
+	private void mutation(DeSolution targetSolution, Solution[] referenceSolutions)
 	{
 		double[][][][] weight = new double[1 + referenceSolutions.length][][][];
 		double[][][] bias = new double[1 + referenceSolutions.length][][];
 
 		weight[0] = targetSolution.getNowSolution().getWeight();
 		bias[0] = targetSolution.getNowSolution().getBias();
-		for (int i = 0; i < weight.length; i++)
+		for (int i = 0; i < referenceSolutions.length; i++)
 		{
-			weight[i + 1] = referenceSolutions[i].getNowSolution().getWeight();
-			bias[i + 1] = referenceSolutions[i].getNowSolution().getBias();
+			weight[i + 1] = referenceSolutions[i].getWeight();
+			bias[i + 1] = referenceSolutions[i].getBias();
 		}
 
 		for (int i = 0; i < weight[0].length; i++)
@@ -215,7 +232,13 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			{
 				for (int k = 0; k < weight[0][i][j].length; k++)
 				{
-					weight[0][i][j][k] = weight[1][i][j][k] + de.f * (weight[2][i][j][k] - weight[3][i][j][k]);
+					weight[0][i][j][k] = weight[1][i][j][k];
+
+					for (int l = 0; l < de.groupNumber; l++)
+					{
+						weight[0][i][j][k] = weight[0][i][j][k]
+								+ de.f * (weight[2 * (l + 1)][i][j][k] - weight[2 * (l + 1) + 1][i][j][k]);
+					}
 				}
 			}
 		}
@@ -224,7 +247,11 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		{
 			for (int j = 0; j < bias[0][i].length; j++)
 			{
-				bias[0][i][j] = bias[1][i][j] + de.f * (bias[2][i][j] - bias[3][i][j]);
+				bias[0][i][j] = bias[1][i][j];
+				for (int k = 0; k < de.groupNumber; k++)
+				{
+					bias[0][i][j] = bias[0][i][j] + de.f * (bias[2 * (k + 1)][i][j] - bias[2 * (k + 1) + 1][i][j]);
+				}
 			}
 		}
 		targetSolution.setNewSolution(new Solution(weight[0], bias[0]));
@@ -283,7 +310,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		solution.setNewSolution(new Solution(weight[1], bias[1]));
 	}
 
-	private int[] randomArray(int lockFirstIndexNumber)
+	private int[] randomArray(int lockFirstIndexNumber, int updateMode)
 	{
 		int[] indexArray = new int[solutions.length];
 		int randomNumber;
@@ -305,6 +332,21 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		temp = indexArray[0];
 		indexArray[0] = indexArray[randomNumber];
 		indexArray[randomNumber] = temp;
+
+		if (updateMode == UPDATE_MODE_BEST)
+		{
+			if (bestIndex == -1) // neuron network init weight is best
+			{
+				indexArray[1] = -1;
+			}
+			else
+			{
+				randomNumber = bestIndex;
+				temp = indexArray[1];
+				indexArray[1] = indexArray[randomNumber];
+				indexArray[randomNumber] = temp;
+			}
+		}
 
 		return indexArray;
 	}
@@ -328,6 +370,11 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			}
 		}
 
+		for (int i = 0; i < evaluateLayers.length; i++)
+		{
+			update(evaluateLayers[i], i);
+		}
+		
 		double[][][] weight = new double[evaluateLayers.length][][];
 		double[][] bias = new double[evaluateLayers.length][];
 

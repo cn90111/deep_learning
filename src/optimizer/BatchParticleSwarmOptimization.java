@@ -71,12 +71,16 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	{
 		batchUpdate();
 	}
-	
+
 	@Override
 	public void batchUpdate()
 	{
-		evaluate(featureArray, labelArray);
-		determine();
+		if (firstEvalutate == true)
+		{
+			evaluate(featureArray, labelArray);
+			determine();
+			firstEvalutate = false;
+		}
 		transit();
 		evaluate(featureArray, labelArray);
 		determine();
@@ -114,6 +118,8 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 				labelArray[i][j] = 0;
 			}
 		}
+		
+		firstEvalutate = true;
 	}
 
 	@Override

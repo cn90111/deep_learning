@@ -17,10 +17,14 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 	protected int dataSize;
 	protected int dataCount;
 
+	protected boolean firstEvalutate;
+
 	public MetaheuristicOptimizer(int dataSize)
 	{
 		this.dataSize = dataSize;
 		this.dataCount = 0;
+		this.firstEvalutate = true;
+
 		featureArray = new double[dataSize][];
 		labelArray = new double[dataSize][];
 	}
@@ -51,7 +55,7 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 			labelArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
 		}
 	}
-	
+
 	@Override
 	public void update(double[] guessValue, double[] trueValue)
 	{
@@ -62,7 +66,7 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 			update();
 		}
 	}
-	
+
 	public abstract void update();
 
 	protected void saveData(double[] trueValue)
@@ -85,7 +89,7 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 			array[index][i] = value[i];
 		}
 	}
-	
+
 	protected void setSolutionWeightToLayers(Solution solution)
 	{
 		double[][][] weight = solution.getWeight();
@@ -97,7 +101,7 @@ public abstract class MetaheuristicOptimizer extends Optimizer
 			evaluateLayers[i].updateBias(bias[i]);
 		}
 	}
-	
+
 	protected double evaluate(double[] feature, double[] label)
 	{
 		double[] predictLabel;

@@ -37,8 +37,9 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 	// layer bias
 	private double[][] biasDeltaArray;
 
-	public HybridParticleSwarmOptimizationBackPropagation(metaheuristic.PsoParameter psoParameter, int dataSize, int condition,
-			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
+	public HybridParticleSwarmOptimizationBackPropagation(metaheuristic.PsoParameter psoParameter, int dataSize,
+			int condition, int bpSearchGenerations, int psoGenerations, double learningRate,
+			double learningRateDecayRate)
 	{
 		super(psoParameter, dataSize);
 		this.mode = condition;

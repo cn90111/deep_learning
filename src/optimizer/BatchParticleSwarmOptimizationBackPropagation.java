@@ -4,11 +4,11 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import metaheuristic.Particle;
 
-public class BatchSizeParticleSwarmOptimizationBackPropagation extends HybridParticleSwarmOptimizationBackPropagation
+public class BatchParticleSwarmOptimizationBackPropagation extends HybridParticleSwarmOptimizationBackPropagation
 		implements SupportBatchUpdate
 {
 
-	public BatchSizeParticleSwarmOptimizationBackPropagation(metaheuristic.PsoParameter psoParameter, int batch, int condition,
+	public BatchParticleSwarmOptimizationBackPropagation(metaheuristic.PsoParameter psoParameter, int batch, int condition,
 			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
 	{
 		super(psoParameter, batch, condition, bpSearchGenerations, psoGenerations, learningRate, learningRateDecayRate);

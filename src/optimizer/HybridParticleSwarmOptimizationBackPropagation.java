@@ -100,8 +100,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 		else
 		{
 			bpUpdate();
+			reset();
 		}
-		reset();
 	}
 
 	protected void psoUpdate()

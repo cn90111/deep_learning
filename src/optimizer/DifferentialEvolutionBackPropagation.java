@@ -27,7 +27,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 	// layer bias
 	private double[][] biasDeltaArray;
 
-	private DeSolution[] solutions;
+	protected DeSolution[] solutions;
 
 	private int bestIndex;
 
@@ -57,6 +57,16 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			solutionsInit(solutions[i], globalBestSolution.getWeight(), globalBestSolution.getBias());
 		}
 
+		this.weightDeltaArray = new double[layers.length][][];
+		this.biasDeltaArray = new double[layers.length][];
+
+		for (int i = 0; i < layers.length; i++)
+		{
+			weightDeltaArray[i] = layers[i].getWeight();
+			biasDeltaArray[i] = layers[i].getBias();
+		}
+
+		reset();
 	}
 
 	private void solutionsInit(DeSolution solution, double[][][] weightSize, double[][] biasSize)
@@ -113,8 +123,8 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		else
 		{
 			bpUpdate();
+			reset();
 		}
-		reset();
 	}
 
 	public void deUpdate()
@@ -141,7 +151,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		deCount = deCount + 1;
 	}
 
-	private void evaluate(double[][] feature, double[][] label)
+	protected void evaluate(double[][] feature, double[][] label)
 	{
 		if (globalBestValue == 0)
 		{
@@ -157,7 +167,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		}
 	}
 
-	private void evaluate(DeSolution solution, double[][] feature, double[][] label)
+	protected void evaluate(DeSolution solution, double[][] feature, double[][] label)
 	{
 		double lossValue = 0;
 		setSolutionWeightToLayers(solution.getNewSolution());
@@ -374,7 +384,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		{
 			update(evaluateLayers[i], i);
 		}
-		
+
 		double[][][] weight = new double[evaluateLayers.length][][];
 		double[][] bias = new double[evaluateLayers.length][];
 

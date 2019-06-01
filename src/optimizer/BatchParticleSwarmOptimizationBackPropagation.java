@@ -103,8 +103,6 @@ public class BatchParticleSwarmOptimizationBackPropagation extends HybridParticl
 				labelArray[i][j] = 0;
 			}
 		}
-
-		super.reset();
 	}
 
 	@Override

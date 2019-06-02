@@ -1,7 +1,5 @@
 package metaheuristic;
 
-import optimizer.DifferentialEvolutionBackPropagation;
-
 public class DeParameter
 {
 	public int size;
@@ -13,10 +11,9 @@ public class DeParameter
 	public int updateMode;// best or random
 	public int groupNumber;// 1,2,3....
 
-	public int totalRandom;
+	public int totalReferenceCount;
 
-	public DeParameter(int size, double f, double solutionLimit, double initSolutionUpperLimit,
-			double initSolutionLowerLimit, double crossoverRate, int updateMode, int groupNumber)
+	public DeParameter(int size, double f, double solutionLimit, double crossoverRate, int updateMode, int groupNumber)
 	{
 		this.size = size;
 		this.f = f;
@@ -24,18 +21,6 @@ public class DeParameter
 		this.crossoverRate = crossoverRate;
 		this.updateMode = updateMode;
 		this.groupNumber = groupNumber;
-
-		switch (updateMode)
-		{
-			case DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST:
-				totalRandom = 0;
-				break;
-			case DifferentialEvolutionBackPropagation.UPDATE_MODE_RANDOM:
-				totalRandom = 1;
-				break;
-			default:
-				throw new UnsupportedOperationException("Only support Best and Random.");
-		}
-		totalRandom = totalRandom + 2 * groupNumber;
+		this.totalReferenceCount = 1 + 2 * groupNumber;
 	}
 }

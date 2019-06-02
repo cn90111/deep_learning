@@ -35,12 +35,14 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			double learningRateDecayRate)
 	{
 		super(dataSize);
+		this.de = de;
 		this.deGenerations = deGenerations;
 		this.deCount = 0;
 		this.originLearningRate = learningRate;
 		this.learningRateDecayRate = learningRateDecayRate;
 		this.bestIndex = -1;
 
+		solutions = new DeSolution[de.size];
 		for (int i = 0; i < de.size; i++)
 		{
 			solutions[i] = new DeSolution(de.solutionLimit);
@@ -205,9 +207,9 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		{
 			int[] indexArray = randomArray(i, de.updateMode);
 
-			Solution[] randomSolutions = new Solution[de.totalRandom];
+			Solution[] randomSolutions = new Solution[de.totalReferenceCount];
 
-			for (int j = 0; j < de.totalRandom; i++)
+			for (int j = 0; j < de.totalReferenceCount; j++)
 			{
 				if (indexArray[j + 1] == -1) // if neuron network init is best.
 				{
@@ -338,7 +340,8 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			indexArray[i] = indexArray[randomNumber];
 			indexArray[randomNumber] = temp;
 		}
-		randomNumber = lockFirstIndexNumber;
+
+		randomNumber = indexOf(indexArray, lockFirstIndexNumber);
 		temp = indexArray[0];
 		indexArray[0] = indexArray[randomNumber];
 		indexArray[randomNumber] = temp;
@@ -349,9 +352,13 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			{
 				indexArray[1] = -1;
 			}
+			else if (bestIndex == lockFirstIndexNumber)
+			{
+				indexArray[1] = bestIndex;
+			}
 			else
 			{
-				randomNumber = bestIndex;
+				randomNumber = indexOf(indexArray, bestIndex);
 				temp = indexArray[1];
 				indexArray[1] = indexArray[randomNumber];
 				indexArray[randomNumber] = temp;
@@ -359,6 +366,16 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		}
 
 		return indexArray;
+	}
+
+	private int indexOf(int[] array, int searchTarget)
+	{
+		for (int i = 0; i < array.length; i++)
+		{
+			if (array[i] == searchTarget)
+				return i;
+		}
+		return -1;
 	}
 
 	private void bpUpdate()

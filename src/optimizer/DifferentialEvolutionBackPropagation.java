@@ -83,6 +83,7 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 		solutionWeight = randomSetValueTo3DArray(weight, de.solutionLimit, -1 * de.solutionLimit);
 		solutionBias = randomSetValueTo2DArray(bias, de.solutionLimit, -1 * de.solutionLimit);
 		solution.setNewSolution(new Solution(solutionWeight, solutionBias));
+		solution.setNowSolution(new Solution(solutionWeight, solutionBias));
 	}
 
 	private double[][][] randomSetValueTo3DArray(double[][][] arraySize, double upperLimit, double lowerLimit)
@@ -311,11 +312,11 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 			{
 				if (Math.random() < de.crossoverRate)
 				{
-					weight[1][i][j] = weight[1][i][j];
+					bias[1][i][j] = bias[1][i][j];
 				}
 				else
 				{
-					weight[1][i][j] = weight[0][i][j];
+					bias[1][i][j] = bias[0][i][j];
 				}
 			}
 		}

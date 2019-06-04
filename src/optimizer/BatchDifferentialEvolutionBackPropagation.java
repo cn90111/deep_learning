@@ -3,6 +3,7 @@ package optimizer;
 import layer.Layer;
 import loss.AbstractLossFunction;
 import metaheuristic.DeParameter;
+import metaheuristic.DeSolution;
 
 public class BatchDifferentialEvolutionBackPropagation extends DifferentialEvolutionBackPropagation
 		implements SupportBatchUpdate
@@ -54,6 +55,25 @@ public class BatchDifferentialEvolutionBackPropagation extends DifferentialEvolu
 		{
 			evaluate(solutions[i], feature, label);
 		}
+	}
+
+	protected void evaluate(DeSolution solution, double[][] feature, double[][] label)
+	{
+		double lossValue = 0;
+		setSolutionWeightToLayers(solution.getNewSolution());
+		for (int i = 0; i < feature.length; i++)
+		{
+			lossValue = lossValue + evaluate(feature[i], label[i]);
+		}
+		solution.setNewValue(lossValue);
+
+		lossValue = 0;
+		setSolutionWeightToLayers(solution.getNowSolution());
+		for (int i = 0; i < feature.length; i++)
+		{
+			lossValue = lossValue + evaluate(feature[i], label[i]);
+		}
+		solution.setNowValue(lossValue);
 	}
 
 	@Override

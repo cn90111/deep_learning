@@ -6,9 +6,10 @@ import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import metaheuristic.DeParameter;
 import model.Model;
+import optimizer.BatchDifferentialEvolutionBackPropagation;
 import optimizer.DifferentialEvolutionBackPropagation;
 
-public class Launch1
+public class Launch
 {
 	public static void main(String[] args)
 	{
@@ -29,7 +30,7 @@ public class Launch1
 		int inputShape = 2;
 		int outputShape = 1;
 
-		String timeFileName = "DEBP10ep4";
+		String timeFileName = "BSDEBP30ep30";
 
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
@@ -280,17 +281,29 @@ public class Launch1
 			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
 			// 0.01, 0.05));
 
+			// solution : 1 ~ -1
+			// DeParameter deParameter = new DeParameter(200, 0.5, 1, 0.7,
+			// DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST, 1);
+			// model.compile(inputShape, loss,
+			// new DifferentialEvolutionBackPropagation(deParameter, trainFeature.length,
+			// 500, 0.01, 0.05));
+
+			// solution : 1 ~ -1
+			// General problem
+			// batch size = trainFeature.length/10
+			// xor problem
+			// batch size = 4
 			DeParameter deParameter = new DeParameter(200, 0.5, 1, 0.7,
 					DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST, 1);
-			model.compile(inputShape, loss,
-					new DifferentialEvolutionBackPropagation(deParameter, trainFeature.length, 500, 0.01, 0.05));
+			model.compile(inputShape, loss, new BatchDifferentialEvolutionBackPropagation(deParameter,
+					trainFeature.length / 10, 500, 0.01, 0.05));
 
-//			timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
-//			timer.start();
+			// timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
+			// timer.start();
 			timeStart = System.currentTimeMillis();
 			model.fit(trainFeature, trainLabel, epochs, true);
 			timeEnd = System.currentTimeMillis();
-//			timer.close();
+			// timer.close();
 			for (int j = 0; j < testFeature.length; j++)
 			{
 				predictLabel[j] = model.predict(testFeature[j]);

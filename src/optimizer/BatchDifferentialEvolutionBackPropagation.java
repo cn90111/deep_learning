@@ -2,16 +2,17 @@ package optimizer;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Particle;
+import metaheuristic.DeParameter;
+import metaheuristic.DeSolution;
 
-public class BatchSizeParticleSwarmOptimizationBackPropagation extends HybridParticleSwarmOptimizationBackPropagation
+public class BatchDifferentialEvolutionBackPropagation extends DifferentialEvolutionBackPropagation
 		implements SupportBatchUpdate
 {
 
-	public BatchSizeParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int batch, int condition,
-			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
+	public BatchDifferentialEvolutionBackPropagation(DeParameter de, int batch, int deGenerations, double learningRate,
+			double learningRateDecayRate)
 	{
-		super(psoParameter, batch, condition, bpSearchGenerations, psoGenerations, learningRate, learningRateDecayRate);
+		super(de, batch, deGenerations, learningRate, learningRateDecayRate);
 	}
 
 	@Override
@@ -41,18 +42,8 @@ public class BatchSizeParticleSwarmOptimizationBackPropagation extends HybridPar
 		resetBatch();
 	}
 
-	@Override
-	protected void psoUpdate()
-	{
-		evaluate(featureArray, labelArray);
-		determine();
-		super.psoUpdate();
-	}
-
-	@Override
 	protected void evaluate(double[][] feature, double[][] label)
 	{
-		// evaluate globalBestSolution loss with other feature input
 		setSolutionWeightToLayers(globalBestSolution);
 		globalBestValue = 0;
 		for (int i = 0; i < feature.length; i++)
@@ -60,30 +51,35 @@ public class BatchSizeParticleSwarmOptimizationBackPropagation extends HybridPar
 			globalBestValue = globalBestValue + evaluate(feature[i], label[i]);
 		}
 
-		for (int i = 0; i < particle.length; i++)
+		for (int i = 0; i < solutions.length; i++)
 		{
-			evaluate(particle[i], feature, label);
+			evaluate(solutions[i], feature, label);
 		}
 	}
 
-	private void evaluate(Particle particle, double[][] feature, double[][] label)
+	protected void evaluate(DeSolution solution, double[][] feature, double[][] label)
 	{
 		double lossValue = 0;
-
-		setSolutionWeightToLayers(particle.getNowSolution());
+		setSolutionWeightToLayers(solution.getNewSolution());
 		for (int i = 0; i < feature.length; i++)
 		{
 			lossValue = lossValue + evaluate(feature[i], label[i]);
 		}
-		particle.setNowValue(lossValue);
+		solution.setNewValue(lossValue);
 
 		lossValue = 0;
-		setSolutionWeightToLayers(particle.getLocalBestSolution());
+		setSolutionWeightToLayers(solution.getNowSolution());
 		for (int i = 0; i < feature.length; i++)
 		{
 			lossValue = lossValue + evaluate(feature[i], label[i]);
 		}
-		particle.setLocalBestValue(lossValue);
+		solution.setNowValue(lossValue);
+	}
+
+	@Override
+	public int getBatchSize()
+	{
+		return dataSize;
 	}
 
 	@Override
@@ -103,13 +99,6 @@ public class BatchSizeParticleSwarmOptimizationBackPropagation extends HybridPar
 				labelArray[i][j] = 0;
 			}
 		}
-
-		super.reset();
-	}
-
-	@Override
-	public int getBatchSize()
-	{
-		return dataSize;
+		firstEvalutate = true;
 	}
 }

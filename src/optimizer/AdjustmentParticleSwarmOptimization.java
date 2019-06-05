@@ -2,24 +2,23 @@ package optimizer;
 
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Particle;
-import pso.Solution;
+import metaheuristic.Particle;
+import metaheuristic.PsoParameter;
+import metaheuristic.Solution;
 
 //PSO w auto Adjustment
 //https://www.sciencedirect.com/science/article/pii/S0096300306008277
-public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
+public abstract class AdjustmentParticleSwarmOptimization extends MetaheuristicOptimizer
 {
-	protected pso.Parameter pso;
-	protected Solution globalBestSolution;
-	protected double globalBestValue;
+	protected PsoParameter pso;
 	protected Particle[] particle;
-	protected Layer[] evaluateLayers;
 
 	protected double w;
 	protected int updateCount;
 
-	public AdjustmentParticleSwarmOptimization(pso.Parameter psoParameter)
+	public AdjustmentParticleSwarmOptimization(metaheuristic.PsoParameter psoParameter, int dataSize)
 	{
+		super(dataSize);
 		this.pso = psoParameter;
 
 		updateCount = 0;
@@ -34,41 +33,47 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 	@Override
 	public void setConfiguration(Layer[] layers, AbstractLossFunction lossFunction)
 	{
-		this.layers = layers;
-		this.lossFunction = lossFunction;
-		double[][][] weight = new double[layers.length][][];
-		double[][] bias = new double[layers.length][];
-		evaluateLayers = new Layer[layers.length];
-
-		for (int i = 0; i < layers.length; i++)
-		{
-			weight[i] = layers[i].getWeight();
-			bias[i] = layers[i].getBias();
-			evaluateLayers[i] = new Layer(layers[i]);
-		}
-
-		globalBestSolution = new Solution();
-		globalBestSolution.setWeight(weight);
-		globalBestSolution.setBias(bias);
+		super.setConfiguration(layers, lossFunction);
 
 		for (int i = 0; i < particle.length; i++)
 		{
-			particleInit(particle[i], weight, bias);
+			particleInit(particle[i], globalBestSolution.getWeight(), globalBestSolution.getBias());
 		}
 	}
 
-	private void particleInit(Particle particle, double[][][] weight, double[][] bias)
+	@Override
+	public void update(double[] guessValue, double[] trueValue)
 	{
-		setVelocity(particle, weight, bias);
-		setSolution(particle, weight, bias);
+		updateInertia();
+
+		super.update(guessValue, trueValue);
 	}
 
-	protected void setVelocity(Particle particle, double[][][] weight, double[][] bias)
+	protected void updateInertia()
+	{
+		updateCount = updateCount + 1;
+		if (updateCount < pso.linearEndCount)
+		{
+			w = pso.maxW - (pso.linearEndW / pso.linearEndCount) * updateCount;
+		}
+		else
+		{
+			w = (pso.maxW - pso.linearEndW) * Math.exp((pso.linearEndCount - updateCount) / pso.nonlinearlyWeight);
+		}
+	}
+
+	private void particleInit(Particle particle, double[][][] weightSize, double[][] biasSize)
+	{
+		setVelocity(particle, weightSize, biasSize);
+		setSolution(particle, weightSize, biasSize);
+	}
+
+	protected void setVelocity(Particle particle, double[][][] weightSize, double[][] biasSize)
 	{
 		double[][][] weightVelocity;
 		double[][] biasVelocity;
-		weightVelocity = randomSetValueTo3DArray(weight, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
-		biasVelocity = randomSetValueTo2DArray(bias, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
+		weightVelocity = randomSetValueTo3DArray(weightSize, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
+		biasVelocity = randomSetValueTo2DArray(biasSize, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
 		particle.setVelocity(new Solution(weightVelocity, biasVelocity));
 	}
 
@@ -76,8 +81,8 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 	{
 		double[][][] solutionWeight = null;
 		double[][] solutionBias = null;
-		solutionWeight = randomSetValueTo3DArray(weight, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
-		solutionBias = randomSetValueTo2DArray(bias, pso.initVelocityUpperLimit, pso.initVelocitylowerLimit);
+		solutionWeight = randomSetValueTo3DArray(weight, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
+		solutionBias = randomSetValueTo2DArray(bias, pso.initVelocityUpperLimit, pso.initVelocityLowerLimit);
 		particle.setNowSolution(new Solution(solutionWeight, solutionBias));
 		particle.setLocalBestSolution(new Solution(solutionWeight, solutionBias));
 	}
@@ -159,39 +164,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 		particle.updateSolution(particle.getVelocity());
 	}
 
-	protected void setSolutionWeightToLayers(Solution solution)
-	{
-		double[][][] weight = solution.getWeight();
-		double[][] bias = solution.getBias();
-
-		for (int i = 0; i < evaluateLayers.length; i++)
-		{
-			evaluateLayers[i].updateWeight(weight[i]);
-			evaluateLayers[i].updateBias(bias[i]);
-		}
-	}
-
-	protected double evaluate(double[] feature, double[] label)
-	{
-		double[] predictLabel;
-		double error;
-
-		predictLabel = predict(feature);
-		error = lossFunction.getError(predictLabel, label);
-
-		return error;
-	}
-
-	protected double[] predict(double[] feature)
-	{
-		evaluateLayers[0].dataIn(feature);
-		for (int i = 1; i < evaluateLayers.length; i++)
-		{
-			evaluateLayers[i].dataIn(evaluateLayers[i - 1].dataOutput());
-		}
-		return evaluateLayers[evaluateLayers.length - 1].dataOutput();
-	}
-
 	protected void determine()
 	{
 		Particle temp;
@@ -209,14 +181,6 @@ public abstract class AdjustmentParticleSwarmOptimization extends Optimizer
 				globalBestValue = temp.getLocalBestValue();
 				globalBestSolution = temp.getLocalBestSolution();
 			}
-		}
-	}
-
-	protected void saveValueToArray(double[][] array, double[] value, int index)
-	{
-		for (int i = 0; i < value.length; i++)
-		{
-			array[index][i] = value[i];
 		}
 	}
 }

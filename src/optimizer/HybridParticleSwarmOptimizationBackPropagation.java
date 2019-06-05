@@ -4,8 +4,8 @@ import activation.AbstractActivation;
 import activation.Differentiable;
 import layer.Layer;
 import loss.AbstractLossFunction;
-import pso.Particle;
-import pso.Solution;
+import metaheuristic.Particle;
+import metaheuristic.Solution;
 
 // PSO-BP
 // https://www.sciencedirect.com/science/article/pii/S0096300306008277
@@ -37,17 +37,11 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 	// layer bias
 	private double[][] biasDeltaArray;
 
-	protected int dataSize;
-	protected int dataCount;
-	protected double[][] featureArray;
-	protected double[][] labelArray;
-
-	public HybridParticleSwarmOptimizationBackPropagation(pso.Parameter psoParameter, int dataSize, int condition,
-			int bpSearchGenerations, int psoGenerations, double learningRate, double learningRateDecayRate)
+	public HybridParticleSwarmOptimizationBackPropagation(metaheuristic.PsoParameter psoParameter, int dataSize,
+			int condition, int bpSearchGenerations, int psoGenerations, double learningRate,
+			double learningRateDecayRate)
 	{
-		super(psoParameter);
-		this.dataSize = dataSize;
-		this.dataCount = 0;
+		super(psoParameter, dataSize);
 		this.mode = condition;
 		this.bpSearchGenerations = bpSearchGenerations;
 		this.bpCount = 0;
@@ -60,9 +54,6 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 		this.previousPsoGlobalValue = 0;
 		this.worstParticle = null;
 		this.worstValue = 0;
-
-		featureArray = new double[dataSize][];
-		labelArray = new double[dataSize][];
 	}
 
 	@Override
@@ -79,42 +70,13 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 			biasDeltaArray[i] = layers[i].getBias();
 		}
 
-		for (int i = 0; i < dataSize; i++)
-		{
-			featureArray[i] = new double[layers[0].getLinkSize()];
-			labelArray[i] = new double[layers[layers.length - 1].getNeuronSize()];
-		}
-
 		reset();
 	}
 
 	@Override
 	public void update(double[] guessValue, double[] trueValue)
 	{
-		updateCount = updateCount + 1;
-		if (updateCount < pso.linearEndCount)
-		{
-			w = pso.maxW - (pso.linearEndW / pso.linearEndCount) * updateCount;
-		}
-		else
-		{
-			w = (pso.maxW - pso.linearEndW) * Math.exp((pso.linearEndCount - updateCount) / pso.nonlinearlyWeight);
-		}
-
-		if (dataCount < dataSize)
-		{
-			double[] feature = layers[0].getInput();
-
-			saveValueToArray(featureArray, feature, dataCount);
-			saveValueToArray(labelArray, trueValue, dataCount);
-
-			dataCount = dataCount + 1;
-		}
-
-		if (dataCount >= dataSize)
-		{
-			update();
-		}
+		super.update(guessValue, trueValue);
 	}
 
 	public void update()
@@ -138,8 +100,8 @@ public class HybridParticleSwarmOptimizationBackPropagation extends AdjustmentPa
 		else
 		{
 			bpUpdate();
+			reset();
 		}
-		reset();
 	}
 
 	protected void psoUpdate()

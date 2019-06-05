@@ -1,6 +1,6 @@
-package pso;
+package metaheuristic;
 
-public class Parameter
+public class PsoParameter
 {
 	public int size;
 	public double c1;
@@ -12,13 +12,13 @@ public class Parameter
 
 	public double velocityLimit;
 	public double initVelocityUpperLimit;
-	public double initVelocitylowerLimit;
+	public double initVelocityLowerLimit;
 
 	public double solutionLimit;
 	public double initSolutionUpperLimit;
-	public double initSolutionlowerLimit;
+	public double initSolutionLowerLimit;
 
-	public Parameter(int size, double globalSearchWeight, double localSearchWeight, double velocityRate,
+	public PsoParameter(int size, double globalSearchWeight, double localSearchWeight, double velocityRate,
 			double velocityLimit, double initVelocityUpperLimit, double initVelocitylowerLimit, double solutionLimit,
 			double initSolutionUpperLimit, double initSolutionlowerLimit, double linearEndCount,
 			double nonlinearlyWeight)
@@ -34,10 +34,10 @@ public class Parameter
 
 		this.velocityLimit = velocityLimit;
 		this.initVelocityUpperLimit = initVelocityUpperLimit;
-		this.initVelocitylowerLimit = initVelocitylowerLimit;
+		this.initVelocityLowerLimit = initVelocitylowerLimit;
 
 		this.solutionLimit = solutionLimit;
 		this.initSolutionUpperLimit = initSolutionUpperLimit;
-		this.initSolutionlowerLimit = initSolutionlowerLimit;
+		this.initSolutionLowerLimit = initSolutionlowerLimit;
 	}
 }

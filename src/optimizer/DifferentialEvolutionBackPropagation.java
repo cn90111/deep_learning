@@ -80,8 +80,8 @@ public class DifferentialEvolutionBackPropagation extends MetaheuristicOptimizer
 	{
 		double[][][] solutionWeight = null;
 		double[][] solutionBias = null;
-		solutionWeight = randomSetValueTo3DArray(weight, de.solutionLimit, -1 * de.solutionLimit);
-		solutionBias = randomSetValueTo2DArray(bias, de.solutionLimit, -1 * de.solutionLimit);
+		solutionWeight = randomSetValueTo3DArray(weight, 1, 0);
+		solutionBias = randomSetValueTo2DArray(bias, 1, 0);
 		solution.setNewSolution(new Solution(solutionWeight, solutionBias));
 		solution.setNowSolution(new Solution(solutionWeight, solutionBias));
 	}

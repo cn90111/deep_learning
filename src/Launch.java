@@ -6,6 +6,7 @@ import loss.AbstractLossFunction;
 import loss.MeanSquaredError;
 import metaheuristic.DeParameter;
 import model.Model;
+import optimizer.BatchDifferentialEvolutionBackPropagation;
 import optimizer.DifferentialEvolutionBackPropagation;
 
 public class Launch
@@ -21,80 +22,30 @@ public class Launch
 		// xor problem datasize = 8
 		// y = sin(2x)e^-x datasize = training data + testing data = 105 + 32 = 137
 		// ackley datasize = 1000, training data = 700, testing data = 300
+		// Griewank datasize = 1000, training data = 700, testing data = 300
 		int dataSize = 1000;
 
 		// xor problem, inputShape = 3
 		// y = sin(2x)e^-x, inputShape = 1
 		// ackley, inputShape = any number
-		int inputShape = 2;
+		// Griewank, inputShape = any number
+		int inputShape = 30;
 		int outputShape = 1;
 
-		String timeFileName = "DEBP30ep30";
+		String timeFileName = "BP30ep30";
 
 		double[][] feature = new double[dataSize][inputShape];
 		double[][] label = new double[feature.length][outputShape];
 
 		Timer timer = null;
 
-		// load File
-		// File loadFile;
-		// Scanner sc = null;
-		// try
-		// {
-		// loadFile = new File("./data1.csv");
-		// sc = new Scanner(loadFile);
-		// }
-		// catch (FileNotFoundException e)
-		// {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-		//
-		// // jump title
-		// sc.nextLine();
-		//
-		// String line;
-		// String[] token;
-		// int lineCount = 0;
-		// while (sc.hasNextLine())
-		// {
-		// line = sc.nextLine();
-		// token = line.split(",");
-		//
-		// for (int i = 0; i < inputShape; i++)
-		// {
-		// if (token[i].equals("inf"))
-		// {
-		// feature[lineCount][i] = 0;
-		// }
-		// else
-		// {
-		// feature[lineCount][i] = Double.parseDouble(token[i]);
-		// }
-		// }
-		//
-		// if (token[token.length - 1].equals("Natural"))
-		// {
-		// label[lineCount][0] = 1;
-		// label[lineCount][1] = 0;
-		// }
-		// else if (token[token.length - 1].equals("Attack"))
-		// {
-		// label[lineCount][0] = 0;
-		// label[lineCount][1] = 1;
-		// }
-		// else
-		// {
-		// System.out.println("error:" + token[token.length - 1]);
-		// System.exit(0);
-		// }
-		//
-		// lineCount = lineCount + 1;
-		// }
+		// Griewank
+		double griewankSum1;
+		double griewankMul2;
 
 		// ackley
-		double ackleySum1;
-		double ackleySum2;
+		// double ackleySum1;
+		// double ackleySum2;
 
 		// sin(2x)e^-x problem
 		// double samplingNumber = 0;
@@ -129,26 +80,39 @@ public class Launch
 
 		for (int i = 0; i < dataSize; i++)
 		{
+			// Griewank
+			griewankSum1 = 0;
+			griewankMul2 = 0;
+
 			// ackley
-			ackleySum1 = 0;
-			ackleySum2 = 0;
+			// ackleySum1 = 0;
+			// ackleySum2 = 0;
 			for (int j = 0; j < inputShape; j++)
 			{
 				// xor problem
 				// feature[i][j] = xorDataSet[i][j];
 
 				// ackley
+				// feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
+				// ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
+				// ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
+
+				// Griewank
 				feature[i][j] = generator.nextDouble() * 30 * 2 - 30;
-				ackleySum1 = ackleySum1 + Math.pow(feature[i][j], 2);
-				ackleySum2 = ackleySum2 + Math.cos(2 * Math.PI * feature[i][j]);
+				griewankSum1 = griewankSum1 + Math.pow(feature[i][j], 2);
+				griewankMul2 = griewankMul2 * Math.cos(feature[i][j] / Math.sqrt(1.0 + j));
 			}
+
+			// Griewank function
+			label[i][0] = griewankSum1 / 4000.0 - griewankMul2 + 1.0;
+
+			// ackley function, inputShape = any number
+			// label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) *
+			// ackleySum1))
+			// - Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
 
 			// y = sin(2x)e^-x, inputShape = 1
 			// label[i][0] = Math.sin(2 * feature[i][0]) * Math.exp(-1 * feature[i][0]);
-
-			// ackley function, inputShape = any number
-			label[i][0] = -20 * Math.exp(-0.2 * Math.sqrt((1.0 / inputShape) * ackleySum1))
-					- Math.exp((1.0 / inputShape) * ackleySum2) + 20 + Math.exp(1);
 
 			// xor problem, inputShape = 3
 			// label[i][0] = 0;
@@ -236,6 +200,8 @@ public class Launch
 			double avgLossValue = 0;
 
 			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
+			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
+			model.add(new Layer(hiddenLayerNeurons, new Random(50, -50), new Sigmoid()));
 
 			model.add(new Layer(outputShape, new Random(50, -50), new Linear()));
 
@@ -244,14 +210,15 @@ public class Launch
 			// velocity : +- velocityLimit / 10
 			// solution : 1 ~ -1
 			// General problem
-			// BS-IPSO batch size = 20
+			// BS-IPSO batch size = 10%
 			// xor problem
-			// BS-IPSO batch size = 4
+			// BS-IPSO batch size = 50%
 			// PsoParameter psoParameter = new PsoParameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
 			// 99999, 1, 0, 10 * dataSize / 4,
 			// 1);
-			// model.compile(inputShape, loss, new
-			// BatchParticleSwarmOptimization(psoParameter, trainFeature.length / 10));
+			// model.compile(inputShape, loss,
+			// new BatchParticleSwarmOptimization(psoParameter, (int) (trainFeature.length *
+			// 0.1)));
 
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
@@ -268,34 +235,30 @@ public class Launch
 			// velocity : 1 ~ 0
 			// solution : 1 ~ 0
 			// General problem
-			// batch size = trainFeature.length/10
+			// batch size = 10%
 			// xor problem
-			// batch size = 4
-			// PsoParameter psoParameter = new PsoParameter(200, 2.0, 2.0, 1.8, 10, 1, 0,
-			// 99999, 1, 0, 10 * dataSize / 4,
-			// 1);
-			// model.compile(inputShape, loss,
-			// new BatchParticleSwarmOptimizationBackPropagation(psoParameter,
-			// trainFeature.length / 10,
-			// HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200,
-			// 0.01, 0.05));
+			// batch size = 50%
+//			PsoParameter psoParameter = new PsoParameter(200, 2.0, 2.0, 1.8, 10, 1, 0, 99999, 1, 0, 10 * dataSize / 4,
+//					1);
+//			model.compile(inputShape, loss,
+//					new BatchParticleSwarmOptimizationBackPropagation(psoParameter, (int) (trainFeature.length * 0.1),
+//							HybridParticleSwarmOptimizationBackPropagation.FIRST_CONDITION, 1500, 200, 0.01, 0.05));
 
 			// solution : 1 ~ -1
-			DeParameter deParameter = new DeParameter(200, 0.5, 99999, 1, 0, 0.7,
-					DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST, 1);
-			model.compile(inputShape, loss,
-					new DifferentialEvolutionBackPropagation(deParameter, trainFeature.length, 500, 0.01, 0.05));
+//			DeParameter deParameter = new DeParameter(200, 0.5, 99999, 1, 0, 0.7,
+//					DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST, 1);
+//			model.compile(inputShape, loss,
+//					new DifferentialEvolutionBackPropagation(deParameter, trainFeature.length, 500, 0.01, 0.05));
 
 			// solution : 1 ~ -1
 			// General problem
-			// batch size = trainFeature.length/10
+			// batch size = 10%
 			// xor problem
-			// batch size = 4
-			// DeParameter deParameter = new DeParameter(200, 0.5, 99999, 1, 0, 0.7,
-			// DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST, 1);
-			// model.compile(inputShape, loss, new
-			// BatchDifferentialEvolutionBackPropagation(deParameter,
-			// trainFeature.length / 10, 500, 0.01, 0.05));
+			// batch size = 50%
+			DeParameter deParameter = new DeParameter(200, 0.5, 99999, 1, 0, 0.7,
+					DifferentialEvolutionBackPropagation.UPDATE_MODE_BEST, 1);
+			model.compile(inputShape, loss, new BatchDifferentialEvolutionBackPropagation(deParameter,
+					(int) (trainFeature.length * 0.1), 500, 0.01, 0.05));
 
 			timer = new Timer(model, testFeature, testLabel, loss, timeFileName);
 			timer.start();

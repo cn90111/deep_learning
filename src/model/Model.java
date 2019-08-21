@@ -132,7 +132,8 @@ public class Model
 			{
 				if (feature.length % ((SupportBatchUpdate) optimizer).getBatchSize() != 0)
 				{
-					// don't use remaining data to update, because remaining data isn't enough to fit rule. 
+					// don't use remaining data to update, because remaining data isn't enough to
+					// fit rule.
 					// ((SupportBatchUpdate) optimizer).batchUpdate();
 				}
 			}

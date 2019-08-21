@@ -4,7 +4,7 @@ import layer.Layer;
 import loss.AbstractLossFunction;
 import metaheuristic.Particle;
 
-public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptimization implements SupportBatchUpdate
+public class BatchParticleSwarmOptimization extends ParticleSwarmOptimization implements SupportBatchUpdate
 {
 	public BatchParticleSwarmOptimization(metaheuristic.PsoParameter psoParameter)
 	{
@@ -21,6 +21,25 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 	{
 		super.setConfiguration(layers, lossFunction);
 
+		resetBatch();
+	}
+
+	@Override
+	public void update(double[] guessValue, double[] trueValue)
+	{
+		super.update(guessValue, trueValue);
+	}
+
+	@Override
+	public void update()
+	{
+		batchUpdate();
+	}
+
+	@Override
+	public void batchUpdate()
+	{
+		super.update();
 		resetBatch();
 	}
 
@@ -59,42 +78,7 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 		}
 		particle.setLocalBestValue(lossValue);
 	}
-
-	@Override
-	public void update(double[] guessValue, double[] trueValue)
-	{
-		super.update(guessValue, trueValue);
-	}
-
-	@Override
-	public void update()
-	{
-		batchUpdate();
-	}
-
-	@Override
-	public void batchUpdate()
-	{
-		if (firstEvalutate == true)
-		{
-			evaluate(featureArray, labelArray);
-			determine();
-			firstEvalutate = false;
-		}
-		transit();
-		evaluate(featureArray, labelArray);
-		determine();
-
-		double[][][] weight = globalBestSolution.getWeight();
-		double[][] bias = globalBestSolution.getBias();
-		for (int i = 0; i < layers.length; i++)
-		{
-			layers[i].updateWeight(weight[i]);
-			layers[i].updateBias(bias[i]);
-		}
-		resetBatch();
-	}
-
+	
 	@Override
 	public int getBatchSize()
 	{
@@ -118,7 +102,7 @@ public class BatchParticleSwarmOptimization extends AdjustmentParticleSwarmOptim
 				labelArray[i][j] = 0;
 			}
 		}
-		
+
 		firstEvalutate = true;
 	}
 
